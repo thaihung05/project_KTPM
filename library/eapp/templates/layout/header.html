@@ -1,0 +1,55 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-2">
+  <div class="container">
+
+    <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="/">
+      <i class="fa fa-book-reader fs-3 me-2"></i>
+      <span>TH-Library</span>
+    </a>
+
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+
+      <form class="d-flex mx-auto my-3 my-lg-0" style="max-width: 500px; width: 100%;" method="get" action="/">
+        <div class="input-group">
+          <input class="form-control border-primary" type="text" placeholder="Tìm kiếm tên sách, tác giả..." name="kw" />
+          <button class="btn btn-primary px-4" type="submit">
+            <i class="fa fa-search"></i>
+          </button>
+        </div>
+      </form>
+
+      <ul class="navbar-nav ms-auto align-items-center">
+
+        <li class="nav-item">
+          <a class="nav-link fw-semibold active" href="/">Trang chủ</a>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown">
+            Thể loại
+          </a>
+          <ul class="dropdown-menu border-0 shadow">
+            {% for c in categories %}
+            <li><a class="dropdown-item" href="/?category_id={{ c.id }}">{{ c.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+
+        <li class="nav-item mx-lg-2 mt-3 mt-lg-0">
+          <a class="nav-link position-relative btn btn-light rounded-circle p-2" href="/cart">
+            <i class="fa fa-book-bookmark fs-5 text-primary"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-counter" style="font-size: 0.7em;">
+
+            </span>
+          </a>
+        </li>
+
+        <li class="nav-item d-none d-lg-block mx-2"><span class="nav-link text-muted">|</span></li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
