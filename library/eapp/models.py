@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import relationship
 from eapp import db, app
 import hashlib
+from flask_login import UserMixin
 
 class BaseModel(db.Model):
     __abstract__ = True
@@ -19,13 +20,13 @@ class BorrowStatus(UserEnum):
     BORROWING = 1
     RETURNED = 2
 
-class User(BaseModel):
+class User(BaseModel, UserMixin):
     name = Column(String(50), nullable=False)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(50), nullable=False)
     user_role = Column(Enum(UserRole), default=UserRole.USER)
     borrowed = relationship('Borrow', backref='user', lazy=True)
-    avatar = Column(String(100), default='https://res.cloudinary.com/dx4i4a03w/image/upload/v1767614792/restaurant/avatars/uvp1wsa1gsqmcmpnfcev.jpg')
+    avatar = Column(String(255), default='https://res.cloudinary.com/dx4i4a03w/image/upload/v1767614792/restaurant/avatars/uvp1wsa1gsqmcmpnfcev.jpg')
 
     def __repr__(self):
         return self.name
@@ -84,7 +85,10 @@ if __name__ == '__main__':
                   password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.ADMIN)
         u2 = User(name='Thái Hùng', username='thaihung01',
                   password=hashlib.md5('Abc123'.encode()).hexdigest(), user_role=UserRole.USER)
-        db.session.add_all([u1, u2])
+        u3 = User(name='Thanh Huy', username='huy01',
+                  password=hashlib.md5('123'.encode()).hexdigest(), user_role=UserRole.USER)
+
+        db.session.add_all([u1, u2, u3])
         db.session.commit()
         IMG_PATH = 'static/images/books/'
 

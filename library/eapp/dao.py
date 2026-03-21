@@ -1,5 +1,15 @@
-from eapp.models import Category, Book
+from pymysql import IntegrityError
+
+from eapp.models import Category, Book, UserRole
 from eapp import db, app
+import hashlib
+from eapp.models import User
+
+
+def auth_user(username, password):
+    password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
+    return User.query.filter(User.username == username,
+                             User.password == password).first()
 
 def load_categories():
     return Category.query.all()
@@ -35,3 +45,19 @@ def count_books(kw=None, search_by=None, cate_id=None):
             query = query.filter(Book.title.contains(kw))
 
     return query.count()
+
+def get_user_by_id(user_id):
+    return User.query.get(user_id)
+
+def register(username, password, name):
+    password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
+    u = User(username=username.strip(),
+                password=password,
+                name=name.strip(),
+                user_role=UserRole.USER)
+    db.session.add(u)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        raise Exception('Username đã tồn tại!')
