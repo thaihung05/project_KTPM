@@ -1,0 +1,56 @@
+{% extends 'layout/base.html' %}
+{% block title %}Đăng ký{% endblock %}
+
+{% block content %}
+<div style="margin-top: 120px;">
+    <div class="d-flex justify-content-center mt-5 mb-5">
+        <div class="card shadow-sm p-4" style="width: 480px;">
+            <h3 class="text-center text-success mb-4 fw-bold">Đăng ký người dùng</h3>
+
+            {% if err_msg %}
+            <div class="alert alert-danger">{{ err_msg }}</div>
+            {% endif %}
+
+            <form method="post" action="/register" enctype="multipart/form-data">
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Tên đăng nhập:</label>
+                            <input id="username" type="text" class="form-control" placeholder="Tạo tên đăng nhập" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu:</label>
+                            <input id="password" type="password" class="form-control" placeholder="Nhập mật khẩu" name="password" required>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Họ và tên:</label>
+                            <input id="name" type="text" class="form-control" placeholder="Nhập họ tên đầy đủ" name="name" required>
+                        </div>
+
+                       <div class="mb-3">
+                            <label for="confirm" class="form-label">Xác nhận mật khẩu:</label>
+                            <input id="confirm" type="password" class="form-control" placeholder="Nhập lại mật khẩu" name="confirm" required>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 py-2">Đăng ký</button>
+
+                <p class="text-center mt-3">
+                    Đã có tài khoản?
+                    <a href="/login" class="text-decoration-none text-primary fw-bold">Đăng nhập ngay</a>
+                </p>
+
+            </form>
+    </div>
+</div>
+
+</div>
+{% endblock %}
