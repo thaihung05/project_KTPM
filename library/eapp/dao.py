@@ -26,12 +26,32 @@ def load_books(kw=None, search_by=None, cate_id=None, page=1, page_size=None):
 def count_books(kw=None, search_by=None, cate_id=None):
     query = Book.query
     if kw:
-        query = query.filter(Book.title.contains(kw))
-
-    if cate_id:
         if search_by == 'author':
             query = query.filter(Book.author.contains(kw))
         elif search_by == 'title':
             query = query.filter(Book.title.contains(kw))
 
+<<<<<<< Updated upstream
     return query.count()
+=======
+    if cate_id:
+        query = query.filter(Book.category_id.__eq__(cate_id))
+
+    return query.count()
+
+def get_user_by_id(user_id):
+    return User.query.get(user_id)
+
+def register(username, password, name):
+    password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
+    u = User(username=username.strip(),
+                password=password,
+                name=name.strip(),
+                user_role=UserRole.USER)
+    db.session.add(u)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        raise Exception('Username đã tồn tại!')
+>>>>>>> Stashed changes
