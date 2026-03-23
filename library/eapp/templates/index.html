@@ -22,7 +22,7 @@
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
           {% for b in books %}
             <div class="col d-flex align-items-stretch">
-              <div class="card w-100 shadow-sm border-0 h-100 p-2 rounded-3">
+              <div class="card w-100 shadow-sm border-0 h-100 p-2 rounded-3 book-card-frame">
                 <img src="{{ url_for('static', filename=b.image.replace('static/', '')) if b.image else 'https://placehold.co/200x300?text=No+Cover' }}"
                      class="card-img-top rounded" alt="{{ b.title }}" style="height: 220px; object-fit: cover;">
 

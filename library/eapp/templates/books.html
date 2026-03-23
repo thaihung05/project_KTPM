@@ -61,11 +61,16 @@
             </div>
 
             <div class="card-body">
-                {% if books %}
+                {% if error_msg %}
+                    <div class="alert alert-danger text-center mt-3 shadow-sm rounded-3">
+                        <i class="fa fa-exclamation-triangle me-2 fs-5"></i>
+                        <strong>Khoan đã!</strong> {{ error_msg }}
+                    </div>
+                {% elif books %}
                     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
                       {% for b in books %}
                         <div class="col d-flex align-items-stretch">
-                          <div class="card w-100 shadow-sm border p-2 rounded-3 text-center">
+                          <div class="card w-100 shadow-sm border p-2 rounded-3 text-center book-card-frame">
 
                             <img src="{{ url_for('static', filename=b.image.replace('static/', '')) if b.image else 'https://placehold.co/200x300?text=No+Cover' }}"
                                  class="card-img-top rounded mb-2" alt="{{ b.title }}" style="height: 200px; object-fit: cover;">
@@ -103,7 +108,7 @@
                           {% for i in range(1, pages + 1) %}
                           <li class="page-item {% if request.args.get('page', '1') == i|string %}active{% endif %}">
                             <a class="page-link shadow-sm rounded-circle mx-1"
-                               href="/books?page={{ i }}{% if request.args.get('kw') %}&kw={{ request.args.get('kw') }}{% endif %}{% if request.args.get('category_id') %}&category_id={{ request.args.get('category_id') }}{% endif %}{% if request.args.get('search_by') %}&search_by={{ request.args.get('search_by') }}{% endif %}
+                               href="/books?page={{ i }}{% if request.args.get('kw') %}&kw={{ request.args.get('kw') }}{% endif %}{% if request.args.get('category_id') %}&category_id={{ request.args.get('category_id') }}{% endif %}{% if request.args.get('search_by') %}&search_by={{ request.args.get('search_by') }}{% endif %}"
                               >
                                {{ i }}
                             </a>
@@ -112,6 +117,8 @@
                         </ul>
                     </nav>
                     {% endif %}
+
+
 
                 {% else %}
                     <div class="alert alert-warning text-center mt-3">

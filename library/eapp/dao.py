@@ -36,13 +36,13 @@ def load_books(kw=None, search_by=None, cate_id=None, page=1, page_size=None):
 def count_books(kw=None, search_by=None, cate_id=None):
     query = Book.query
     if kw:
-        query = query.filter(Book.title.contains(kw))
-
-    if cate_id:
         if search_by == 'author':
             query = query.filter(Book.author.contains(kw))
         elif search_by == 'title':
             query = query.filter(Book.title.contains(kw))
+
+    if cate_id:
+        query = query.filter(Book.category_id.__eq__(cate_id))
 
     return query.count()
 
