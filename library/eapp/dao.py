@@ -1,5 +1,15 @@
-from eapp.models import Category, Book
+from pymysql import IntegrityError
+
+from eapp.models import Category, Book, UserRole
 from eapp import db, app
+import hashlib
+from eapp.models import User
+
+
+def auth_user(username, password):
+    password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
+    return User.query.filter(User.username == username,
+                             User.password == password).first()
 
 def load_categories():
     return Category.query.all()
@@ -31,9 +41,6 @@ def count_books(kw=None, search_by=None, cate_id=None):
         elif search_by == 'title':
             query = query.filter(Book.title.contains(kw))
 
-<<<<<<< Updated upstream
-    return query.count()
-=======
     if cate_id:
         query = query.filter(Book.category_id.__eq__(cate_id))
 
@@ -54,4 +61,3 @@ def register(username, password, name):
     except IntegrityError:
         db.session.rollback()
         raise Exception('Username đã tồn tại!')
->>>>>>> Stashed changes

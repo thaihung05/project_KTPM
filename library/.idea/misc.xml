@@ -3,9 +3,13 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.14 (library)" />
   </component>
+<<<<<<< HEAD
 <<<<<<< Updated upstream
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.14 virtualenv at D:\Open_University\HK8_2025-2026\KTPM\BTL\project_KTPM\library\.venv" project-jdk-type="Python SDK" />
 =======
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.14 virtualenv at D:\Open_University\HK8_2025-2026\KTPM\BTL\project_KTPM\library\.venv (2)" project-jdk-type="Python SDK" />
 >>>>>>> Stashed changes
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (library)" project-jdk-type="Python SDK" />
+>>>>>>> 43b2d1b646ab3254dd787b7b3b0d133d8e06a128
 </project>
