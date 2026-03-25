@@ -87,9 +87,14 @@
 
                               <div class="mt-auto">
                                   {% if b.available and b.quantity > 0 %}
-                                      <button class="btn btn-primary w-100 btn-sm rounded-pill fw-bold" onclick="addToBorrowList({{ b.id }}, '{{ b.title }}')">
+                                        <div class="d-flex">
+                                            <button class="btn btn-success w-70 rounded-circle btn-sm fw-bold m-2" onclick="addToBorrowList({{ b.id }}, '{{ b.title }}')">
+                                          Thêm giỏ
+                                      </button>
+                                      <button class="btn btn-primary w-70 rounded-circle btn-sm fw-bold m-2" onclick="addToBorrowList({{ b.id }}, '{{ b.title }}')">
                                           Mượn ngay
                                       </button>
+                                        </div>
                                   {% else %}
                                       <button class="btn btn-secondary w-100 btn-sm rounded-pill fw-bold" disabled>
                                           Đã hết

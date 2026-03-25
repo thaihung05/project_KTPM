@@ -1,40 +1,48 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-2">
-  <div class="container">
+    <div class="container">
 
-    <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="/">
-      <i class="fa fa-book-reader fs-3 me-2"></i>
-      <span>TH-Library</span>
-    </a>
+        <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="/">
+            <i class="fa fa-book-reader fs-3 me-2"></i>
+            <span>TH-Library</span>
+        </a>
 
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
 
-      <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item mx-lg-2 mt-3 mt-lg-0">
-          <a class="nav-link position-relative btn btn-light rounded-circle p-2" href="/cart">
-            <i class="fa fa-book-bookmark fs-5 text-primary"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-counter" style="font-size: 0.7em;">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item mx-lg-2 mt-3 mt-lg-0">
+                    <a class="nav-link position-relative btn btn-light rounded-circle p-2" href="/cart">
+                        <i class="fa fa-book-bookmark fs-5 text-primary"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-counter"
+                              style="font-size: 0.7em;">
 
             </span>
-          </a>
-        </li>
+                    </a>
+                </li>
 
-        <li class="nav-item d-none d-lg-block mx-2"><span class="nav-link text-muted">|</span></li>
-        {% if current_user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <img src="{{ current_user.avatar }}" class="rounded-circle" width="40"/>
-                        Chào {{ current_user.name }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout">
-                        <button class="btn btn-danger">Đăng xuất</button>
-                    </a>
-                </li>
+                <li class="nav-item d-none d-lg-block mx-2"><span class="nav-link text-muted">|</span></li>
+                {% if current_user.is_authenticated %}
+                <div class="dropdown ">
+                    <button type="button" class="btn" data-bs-toggle="dropdown">
+                        <li class="nav-item d-flex">
+                            <a class="nav-link" href="#">
+                                <img src="{{ current_user.avatar }}" class="rounded-circle" width="40"/>
+                                Chào {{ current_user.name }}
+                            </a>
+                            <span class="mt-3">
+                                <i class="fa-solid fa-angle-down"></i>
+                            </span>
+                        </li>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/my_books_list">Sách của tôi</a></li>
+                        <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
+                    </ul>
+                </div>
                 {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="/register">
@@ -47,7 +55,7 @@
                     </a>
                 </li>
                 {% endif %}
-      </ul>
+            </ul>
+        </div>
     </div>
-  </div>
 </nav>

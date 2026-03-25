@@ -88,8 +88,37 @@ def book_list():
     return render_template('books.html', books=books, pages=pages, categories=categories, error_msg=error_msg)
 
 
+
+@app.route('/my_books_list')
+def my_book_list():
+    all_borrowed_books= dao.load_all_borrowed_books(current_user.id)
+    error_msg=None
+
+    if all_borrowed_books is None:
+        error_msg='Chưa có sách mượn!'
+    return render_template('mybooks.html', all_borrowed_books=all_borrowed_books, error_msg=error_msg)
+
+@app.route('/my_borrowed_books')
+def my_borrowed_book():
+    my_borrowed_books= dao.load_borrowed_books(current_user.id)
+    error_msg=None
+
+    if my_borrowed_book is None:
+        error_msg='Chưa có sách mượn'
+    return render_template('mybooks.html',my_borrowed_books=my_borrowed_books,error_msg=error_msg)
+
+
+@app.route('/my_borrowing_books')
+def my_borrowing_book():
+    my_borrowing_books= dao.load_borrowing_books(current_user.id)
+    error_msg=None
+
+    if my_borrowed_book is None:
+        error_msg='Chưa có sách mượn'
+    return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
+
 @login.user_loader
 def load_user(id):
     return dao.get_user_by_id(id)
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
