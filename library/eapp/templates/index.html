@@ -3,11 +3,14 @@
 
 {% block content %}
 <div class="row mt-4 mb-5">
-    <div class="p-5 mb-5 rounded-3 position-relative shadow-sm" style="background: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center; background-size: cover; min-height: 350px;">
-        <div class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="opacity: 0.7; border-radius: inherit;"></div>
+    <div class="p-5 mb-5 rounded-3 position-relative shadow-sm"
+         style="background: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center; background-size: cover; min-height: 350px;">
+        <div class="position-absolute top-0 start-0 w-100 h-100 bg-white"
+             style="opacity: 0.7; border-radius: inherit;"></div>
 
         <div class="position-relative mt-5 ms-md-4" style="z-index: 1;">
-            <h1 class="display-5 fw-bold text-dark mb-3" style="color: #444 !important;">Chào Mừng Bạn Đến Với TH-LIBRARY</h1>
+            <h1 class="display-5 fw-bold text-dark mb-3" style="color: #444 !important;">Chào Mừng Bạn Đến Với
+                TH-LIBRARY</h1>
         </div>
     </div>
 
@@ -19,31 +22,31 @@
     </div>
 
     {% if books %}
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
-          {% for b in books %}
-            <div class="col d-flex align-items-stretch">
-              <div class="card w-100 shadow-sm border-0 h-100 p-2 rounded-3 book-card-frame">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
+        {% for b in books %}
+        <div class="col d-flex align-items-stretch">
+            <div class="card w-100 shadow-sm border-0 h-100 p-2 rounded-3">
                 <img src="{{ url_for('static', filename=b.image.replace('static/', '')) if b.image else 'https://placehold.co/200x300?text=No+Cover' }}"
                      class="card-img-top rounded" alt="{{ b.title }}" style="height: 220px; object-fit: cover;">
 
                 <div class="card-body d-flex flex-column p-2 mt-2">
-                  <h6 class="card-title fw-bold text-dark mb-1" style="font-size: 0.9rem;">{{ b.title }}</h6>
-                  <p class="card-text text-muted mb-2" style="font-size: 0.8rem;">{{ b.author }}</p>
+                    <h6 class="card-title fw-bold text-dark mb-1" style="font-size: 0.9rem;">{{ b.title }}</h6>
+                    <p class="card-text text-muted mb-2" style="font-size: 0.8rem;">{{ b.author }}</p>
 
-                  <div class="mt-auto">
-                      <div class="mb-2" style="font-size: 0.8rem;">
-                          {% if b.available and b.quantity > 0 %}
-                              <span class="text-success fw-bold"><i class="fa fa-check-circle"></i> Còn {{ b.quantity }} cuốn</span>
-                          {% else %}
-                              <span class="text-danger fw-bold"><i class="fa fa-times-circle"></i> Hết sách</span>
-                          {% endif %}
-                      </div>
-                  </div>
+                    <div class="mt-auto">
+                        <div class="mb-2" style="font-size: 0.8rem;">
+                            {% if b.available and b.quantity > 0 %}
+                            <span class="text-success fw-bold"><i class="fa fa-check-circle"></i> Còn {{ b.quantity }} cuốn</span>
+                            {% else %}
+                            <span class="text-danger fw-bold"><i class="fa fa-times-circle"></i> Hết sách</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
-          {% endfor %}
         </div>
+        {% endfor %}
+    </div>
     {% endif %}
 </div>
 {% endblock %}

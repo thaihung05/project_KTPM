@@ -1,20 +1,17 @@
-import hashlib
-
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
 import math
-
-from pymysql import IntegrityError
-
-from eapp import app, dao, login, db
-from flask_login import login_user, logout_user, current_user
+from flask import jsonify
+from eapp import app, dao, login
+from flask_login import login_user, logout_user, current_user, login_required
 
 from eapp.dao import register
-from eapp.models import UserRole, User
+from eapp.models import UserRole
 
 
 @app.route('/login', methods=['GET'])
 def login_view():
     return render_template('login.html')
+
 
 @app.route('/login', methods=['POST'])
 def login_process():
@@ -31,9 +28,11 @@ def login_process():
         return redirect('/')
     return render_template('login.html', err_msg='Username hoặc password không chính xác!')
 
+
 @app.route('/register')
 def register_view():
     return render_template('register.html')
+
 
 @app.route('/register', methods=['POST'])
 def register_process():
@@ -52,18 +51,21 @@ def register_process():
         return redirect('/login')
 
     except Exception as ex:
-        return render_template('register.html', err_msg=str(ex))
+        return render_template('register.html', err_msg='Username này đã được đăng ký!!')
+
 
 @app.route('/logout')
 def logout_view():
     logout_user()
     return redirect('/')
 
+
 @app.route('/')
 def index():
     books = dao.load_books(page=1, page_size=10)
 
     return render_template('index.html', books=books)
+
 
 @app.route('/books')
 def book_list():
@@ -72,6 +74,8 @@ def book_list():
     pages = request.args.get('page', 1, type=int)
     search_by = request.args.get('search_by', 'title')
 
+    categories = dao.load_categories()
+    books = dao.load_books(kw=kw, search_by=search_by, cate_id=cate_id, page=pages)
 
     error_msg = None
     books = []
@@ -86,6 +90,7 @@ def book_list():
         pages = math.ceil(total_books / app.config['PAGE_SIZE'])
 
     return render_template('books.html', books=books, pages=pages, categories=categories, error_msg=error_msg)
+
 
 
 
@@ -117,8 +122,55 @@ def my_borrowing_book():
         error_msg='Chưa có sách mượn'
     return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
 
+
+# @app.route('/borrow/<int:book_id>', methods=['POST'])
+# @login_required
+# def borrow_process(book_id):
+#     if not current_user.active:
+#         flash("Tài khoản của bạn đã bị khóa!!Hãy liên lạc với admin để hiểu rõ hơn!!", "danger")
+#         return redirect(url_for('book_list'))
+#     if dao.count_active_books(current_user.id) > 5:
+#         flash("Bạn chỉ có thể mượn tối đa 5 quyển sách!!", "Warning")
+#         return redirect(url_for('book_list'))
+#     if dao.has_overdue_books(current_user.id):
+#         flash("Bạn đang nợ sách quá hạn!!", "danger")
+#         return redirect(url_for('book_list'))
+#     book = dao.Book.query.get(book_id)
+#     if not book or book.quantity <=0:
+#         flash("Sách đã hết bản!", "info")
+#         return redirect(url_for('book_list'))
+#     if dao.add_borrow_record(current_user.id, book_id):
+#         flash(f"Mượn thành công {book.title}!!", "success")
+#     return redirect(url_for('book_list'))
+
+@app.route('/api/borrow/<int:book_id>', methods=['POST'])
+@login_required
+def api_borrow_books(book_id):
+    if not current_user.active:
+        return jsonify({'status': 403, 'message': 'Tài khoản của bạn đã bị khóa!!'})
+    if dao.count_active_books(current_user.id) >= 5:
+        return jsonify({'status': 400, 'message': 'Bạn chỉ có thể mượn tối đa 5 quyển sách!!'})
+    if dao.has_overdue_books(current_user.id):
+        return jsonify({'status': 400, 'message': 'Bạn có sách quá hạn chưa trả!!'})
+    book = dao.Book.query.get(book_id)
+    if not book or book.quantity <= 0:
+        return jsonify({'status': 404, 'message': f'Sách {book.title} không còn trong kho!!'})
+
+    if dao.add_borrow_record(current_user.id, book_id):
+        return jsonify({
+            'status': 200,
+            'message': f'Mượn thành công {book.title}!!',
+            'new_quantity': book.quantity
+        })
+    return jsonify({'status': 500, 'message': 'Hệ thống gặp lỗi!!'})
+
+
 @login.user_loader
 def load_user(id):
     return dao.get_user_by_id(id)
+
+
 if __name__ == '__main__':
+
     app.run(debug=True)
+
