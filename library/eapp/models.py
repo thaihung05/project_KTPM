@@ -82,7 +82,7 @@ class BorrowDetails(BaseModel):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.drop_all()
+        # db.drop_all()
         db.create_all()
         c1 = Category(name='Công nghệ thông tin')
         c2 = Category(name='Văn học Việt Nam')
@@ -98,8 +98,10 @@ if __name__ == '__main__':
                   password=hashlib.md5('Abc123'.encode()).hexdigest(), user_role=UserRole.USER)
         u3 = User(name='Thanh Huy', username='huy01',
                   password=hashlib.md5('123'.encode()).hexdigest(), user_role=UserRole.USER)
+        u4 = User(name='Văn Long', username='vanlong01',
+                  password=hashlib.md5('Abc123'.encode()).hexdigest(), user_role=UserRole.USER)
 
-        db.session.add_all([u1, u2, u3])
+        db.session.add_all([u1, u2, u3, u4])
         db.session.commit()
         IMG_PATH = 'static/images/books/'
 
