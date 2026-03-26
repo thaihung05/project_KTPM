@@ -1,7 +1,7 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, session
 import math
 from flask import jsonify
-from eapp import app, dao, login
+from eapp import app, dao, login, db
 from flask_login import login_user, logout_user, current_user, login_required
 
 from eapp.dao import register
@@ -123,6 +123,66 @@ def api_borrow_books(book_id):
             'new_quantity': book.quantity
         })
     return jsonify({'status': 500, 'message': 'Hệ thống gặp lỗi!!'})
+
+@app.context_processor
+def context_processor():
+    return {'cart': dao.cart_stats(session.get('cart'))}
+
+@app.route('/cart')
+def cart_view():
+    return render_template('cart.html', cart=session.get('cart', {}))
+
+@app.route('/apt/cart', methods=['POST'])
+def add_to_cart_api():
+    data = request.json
+    cart = session.get('cart', {})
+    new_cart, is_added = dao.add_to_cart(cart, data.get('id'), data.get('title'))
+
+    if is_added:
+        session['cart'] = new_cart
+        return jsonify(dao.cart_stats(new_cart))
+
+    return jsonify({'message':'Sách này đã có trong danh sách!!'}), 400
+
+@app.route('/cart/<book_id>', methods=['DELETE'])
+def delete_cart(book_id):
+    cart = session.get('cart', {})
+    if cart and book_id in cart:
+        del cart[book_id]
+        session['cart'] = cart
+        return jsonify(dao.cart_stats(cart))
+    return jsonify({'message':'Không tìm thấy sách!!'}), 400
+
+
+
+@app.route('/api/confirm-borrow', methods=['POST'])
+@login_required
+def confirm_borrow():
+    data = request.json
+    book_ids = data.get('book_ids', [])
+
+    if not current_user.active:
+        return jsonify({'status': 403, 'message': 'Tài khoản của bạn đang bị khóa!'})
+
+    active_count = dao.count_active_books(current_user.id)
+    if active_count + len(book_ids) > 5:
+        return jsonify({'status': 400,
+                        'message': f'Bạn đang mượn {active_count} quyển, chỉ được chọn thêm {5 - active_count} quyển nữa thôi!'})
+
+    if dao.has_overdue_books(current_user.id):
+        return jsonify({'status': 400, 'message': 'Bạn còn sách quá hạn chưa trả, trả xong mới được mượn tiếp!'})
+
+    success, msg = dao.add_multi_borrow_record(current_user.id, book_ids)
+
+    if success:
+        cart = session.get('cart', {})
+        for b_id in book_ids:
+            if str(b_id) in cart:
+                del cart[str(b_id)]
+        session['cart'] = cart
+        return jsonify({'status': 200, 'message': msg})
+
+    return jsonify({'status': 500, 'message': msg})
 
 
 @login.user_loader
