@@ -1,3 +1,4 @@
+from flask import Flask
 from pymysql import IntegrityError
 
 
@@ -133,3 +134,59 @@ def add_borrow_record(user_id, book_id):
 
     db.session.rollback()
     return False
+
+def cart_stats(cart):
+    total_quantity = 0
+    if cart:
+        for c in cart:
+            total_quantity += c['quantity']
+    return {'total_quantity': total_quantity}
+
+def add_to_cart(cart, id, title):
+    if not cart:
+        cart ={}
+    id = str(id)
+
+    if id in cart:
+        return cart, False
+    else:
+        cart[id] = {
+            'id': id,
+            'title': title,
+            'quantity': 1
+        }
+    return cart, True
+
+def add_multi_borrow_record(user_id, book_ids):
+    try:
+        borrow_ticket = Borrow(user_id=user_id)
+        db.session.add(borrow_ticket)
+        db.session.flush()
+
+        for b_id in book_ids:
+            book = Book.query.get(b_id)
+
+            if book in book.quantity > 0:
+
+                detail = BorrowDetails(book_id=book.id, borrow_id=borrow_ticket.id)
+                db.session.add(detail)
+
+                book.quantity -= 1
+                if book.quantity == 0:
+                    book.available = False
+                else:
+                    db.session.rollback()
+                    return False, f"Sách '{book.title}' đã hết"
+
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
+
+
+
+
+
+
+

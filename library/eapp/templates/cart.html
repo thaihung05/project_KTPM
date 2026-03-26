@@ -1,0 +1,35 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+<h2 class="text-center text-primary mt-3">DANH SÁCH SÁCH CHỜ MƯỢN</h2>
+
+<table class="table mt-4">
+    <thead>
+    <tr>
+        <th>Chọn</th>
+        <th>Tên sách</th>
+        <th>Hành động</th>
+    </tr>
+    </thead>
+    <tbody id="cart-body">
+    {% for c in cart.values() %}
+    <tr id="book-{{ c.id }}">
+        <td>
+            <input type="checkbox" class="book-sel form-check-input" value="{{ c.id }}">
+        </td>
+        <td>{{ c.title }}</td>
+        <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteCart('{{ c.id }}')">Xóa</button>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-between">
+    <h5 id="selected-count">Đã chọn: 0 quyển</h5>
+    <button class="btn btn-success fw-bold" onclick="borrowSelected()">XÁC NHẬN MƯỢN</button>
+</div>
+
+<script src="{{ url_for('static', filename='js/borrow.js') }}"></script>
+
+{% endblock %}
