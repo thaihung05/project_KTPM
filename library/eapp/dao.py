@@ -1,7 +1,8 @@
 from flask import Flask
 from pymysql import IntegrityError
 
-from eapp.models import Category, Book, UserRole, BorrowDetails, Borrow
+
+from eapp.models import Category, Book, UserRole, BorrowDetails, Borrow, BorrowStatus
 from eapp import db, app
 import hashlib
 from eapp.models import User
@@ -35,6 +36,36 @@ def load_books(kw=None, search_by=None, cate_id=None, page=1, page_size=None):
         query = query.slice(start, start + size)
 
     return query.all()
+
+
+
+def load_all_borrowed_books(user_id):
+    query = (db.session.query(BorrowDetails,Borrow,Book)
+             .join(Book, Book.id==BorrowDetails.book_id)
+             .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
+             .filter(Borrow.user_id== user_id)
+             .order_by(Borrow.create_date.desc())
+             .all())
+
+    return query
+
+def load_borrowed_books(user_id):
+    query = (db.session.query(BorrowDetails, Borrow,Book)
+             .join(Book,Book.id==BorrowDetails.book_id)
+             .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
+             .filter(Borrow.user_id==user_id, Borrow.status == BorrowStatus.RETURNED)
+             .order_by(Borrow.create_date.desc())
+             .all())
+    return query
+
+def load_borrowing_books(user_id):
+    query = (db.session.query(BorrowDetails, Borrow,Book)
+             .join(Book,Book.id==BorrowDetails.book_id)
+             .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
+             .filter(Borrow.user_id==user_id, Borrow.status==BorrowStatus.BORROWING)
+             .order_by(Borrow.create_date.desc())
+             .all())
+    return query
 
 
 def count_books(kw=None, search_by=None, cate_id=None):

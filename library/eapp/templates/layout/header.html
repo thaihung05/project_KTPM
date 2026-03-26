@@ -21,17 +21,25 @@
 
                 <li class="nav-item d-none d-lg-block mx-2"><span class="nav-link text-muted">|</span></li>
                 {% if current_user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <img src="{{ current_user.avatar }}" class="rounded-circle" width="40"/>
-                        Chào {{ current_user.name }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout">
-                        <button class="btn btn-danger">Đăng xuất</button>
-                    </a>
-                </li>
+
+                <div class="dropdown ">
+                    <button type="button" class="btn" data-bs-toggle="dropdown">
+                        <li class="nav-item d-flex">
+                            <a class="nav-link" href="#">
+                                <img src="{{ current_user.avatar }}" class="rounded-circle" width="40"/>
+                                Chào {{ current_user.name }}
+                            </a>
+                            <span class="mt-3">
+                                <i class="fa-solid fa-angle-down"></i>
+                            </span>
+                        </li>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/my_books_list">Sách của tôi</a></li>
+                        <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
+                    </ul>
+                </div>
+
                 {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="/register">
