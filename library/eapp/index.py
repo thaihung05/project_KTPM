@@ -166,13 +166,13 @@ def api_borrow_books(book_id):
 
 @app.context_processor
 def context_processor():
-    return {'cart': dao.cart_stats(session.get('cart'))}
+    return {'cart_stats': dao.cart_stats(session.get('cart'))}
 
 @app.route('/cart')
 def cart_view():
     return render_template('cart.html', cart=session.get('cart', {}))
 
-@app.route('/apt/cart', methods=['POST'])
+@app.route('/api/cart', methods=['POST'])
 def add_to_cart_api():
     data = request.json
     cart = session.get('cart', {})
@@ -184,7 +184,7 @@ def add_to_cart_api():
 
     return jsonify({'message':'Sách này đã có trong danh sách!!'}), 400
 
-@app.route('/cart/<book_id>', methods=['DELETE'])
+@app.route('/api/cart/<book_id>', methods=['DELETE'])
 def delete_cart(book_id):
     cart = session.get('cart', {})
     if cart and book_id in cart:

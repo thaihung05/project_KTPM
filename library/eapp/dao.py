@@ -138,7 +138,7 @@ def add_borrow_record(user_id, book_id):
 def cart_stats(cart):
     total_quantity = 0
     if cart:
-        for c in cart:
+        for c in cart.values():
             total_quantity += c['quantity']
     return {'total_quantity': total_quantity}
 
@@ -166,7 +166,7 @@ def add_multi_borrow_record(user_id, book_ids):
         for b_id in book_ids:
             book = Book.query.get(b_id)
 
-            if book in book.quantity > 0:
+            if book and book.quantity > 0:
 
                 detail = BorrowDetails(book_id=book.id, borrow_id=borrow_ticket.id)
                 db.session.add(detail)
