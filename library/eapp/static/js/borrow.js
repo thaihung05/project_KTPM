@@ -9,10 +9,19 @@ function borrowBook(bookId) {
     .then(data => {
         if (data.status == 200) {
             Swal.fire("Thành công!", data.message, "success");
-            const qtyElement = document.getElementById(`qty-${bookId}`);
+            Swal.fire({
+                title: "Thành công!",
+                text: data.message,
+                icon: "success",
+                showConfirmButton: false,
+                timer: 800,
+                timerProgressBar: true
+            }).then(() => {
+                const qtyElement = document.getElementById(`qty-${bookId}`);
             if (qtyElement) {
                 qtyElement.innerText = `Còn ${data.new_quantity} quyển`;
             }
+            });
         } else {
             Swal.fire("Thông báo", data.message, "warning");        }
     })
@@ -111,7 +120,14 @@ function borrowSelected() {
     .then(res => res.json())
     .then(data => {
         if (data.status === 200) {
-            Swal.fire("Thành công!", data.message, "success").then(() => {
+            Swal.fire({
+                title: "Thành công!",
+                text: data.message,
+                icon: "success",
+                showConfirmButton: false,
+                timer: 800,
+                timerProgressBar: true
+            }).then(() => {
                 location.href = "/cart";
             });
         } else {
