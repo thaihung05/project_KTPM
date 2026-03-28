@@ -100,7 +100,7 @@ function borrowSelected() {
     let ids = Array.from(selectedCheckboxes).map(cb => cb.value);
 
     if (ids.length === 0) {
-        return Swal.fire("Thông báo", "Bạn chưa chọn quyển sách nào để mượn!", "info");
+        return Swal.fire("Thông báo", "Huy chưa chọn quyển nào để mượn hết!", "info");
     }
 
     fetch('/api/confirm-borrow', {
@@ -111,7 +111,14 @@ function borrowSelected() {
     .then(res => res.json())
     .then(data => {
         if (data.status === 200) {
-            Swal.fire("Thành công!", data.message, "success").then(() => {
+            Swal.fire({
+                title: "Thành công!",
+                text: data.message,
+                icon: "success",
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            }).then(() => {
                 location.href = "/cart";
             });
         } else {

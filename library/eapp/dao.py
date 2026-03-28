@@ -174,12 +174,12 @@ def add_multi_borrow_record(user_id, book_ids):
                 book.quantity -= 1
                 if book.quantity == 0:
                     book.available = False
-                else:
-                    db.session.rollback()
-                    return False, f"Sách '{book.title}' đã hết"
+            else:
+                db.session.rollback()
+                return False, f"Sách '{book.title}' đã hết"
 
         db.session.commit()
-        return True
+        return True, "Mượn sách thành công!!!"
     except Exception as e:
         db.session.rollback()
         return False, str(e)
