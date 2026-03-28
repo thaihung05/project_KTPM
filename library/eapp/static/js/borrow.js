@@ -24,11 +24,11 @@ function borrowBook(bookId) {
 
 function addToCart(id, title) {
     fetch(`/api/cart`, {
-        method: 'POST'
-        headers: {'Context_Type': 'application/json'},
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             'id': id,
-            'title': id
+            'title': title
         })
     }).then(res => res.json())
     .then(data => {
@@ -40,7 +40,7 @@ function addToCart(id, title) {
             Swal.fire({
                 title: "Đã thêm!!",
                 text: `Sách "${title}" đã được thêm vào giỏ hàng của bạn!!`,
-                icon: "success"
+                icon: "success",
                 showConfirmButton: false,
                 timer: 1200
             })
