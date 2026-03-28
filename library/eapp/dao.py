@@ -53,7 +53,7 @@ def load_borrowed_books(user_id):
     query = (db.session.query(BorrowDetails, Borrow,Book)
              .join(Book,Book.id==BorrowDetails.book_id)
              .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
-             .filter(Borrow.user_id==user_id, Borrow.status == BorrowStatus.RETURNED)
+             .filter(Borrow.user_id==user_id, BorrowDetails.return_date != None)
              .order_by(Borrow.create_date.desc())
              .all())
     return query
@@ -62,7 +62,7 @@ def load_borrowing_books(user_id):
     query = (db.session.query(BorrowDetails, Borrow,Book)
              .join(Book,Book.id==BorrowDetails.book_id)
              .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
-             .filter(Borrow.user_id==user_id, Borrow.status==BorrowStatus.BORROWING)
+             .filter(Borrow.user_id==user_id, BorrowDetails.return_date == None)
              .order_by(Borrow.create_date.desc())
              .all())
     return query

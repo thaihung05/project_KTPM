@@ -22,7 +22,7 @@ class UserRole(UserEnum):
 class BorrowStatus(UserEnum):
     BORROWING = 1
     RETURNED = 2
-
+    OVERDUE=3
 
 class User(BaseModel, UserMixin):
     name = Column(String(50), nullable=False)
@@ -57,7 +57,6 @@ class Book(BaseModel):
 class Borrow(BaseModel):
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     create_date = Column(DateTime, default=datetime.now)
-    status = Column(Enum(BorrowStatus), default=BorrowStatus.BORROWING)
 
     details = relationship('BorrowDetails', backref='borrow', lazy=True)
 
@@ -72,6 +71,7 @@ class BorrowDetails(BaseModel):
     borrowed_date = Column(DateTime, default=datetime.now)
     due_date = Column(DateTime, default=calculate_due_date)
     return_date = Column(DateTime, nullable=True)
+    status = Column(Enum(BorrowStatus), default=BorrowStatus.BORROWING)
     fine = Column(Float, default=0)
 
     def is_overdue(self):
