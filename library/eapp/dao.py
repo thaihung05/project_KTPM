@@ -1,6 +1,7 @@
+from datetime import date, datetime
+
 from flask import Flask
 from pymysql import IntegrityError
-
 
 from eapp.models import Category, Book, UserRole, BorrowDetails, Borrow, BorrowStatus
 from eapp import db, app
@@ -38,31 +39,38 @@ def load_books(kw=None, search_by=None, cate_id=None, page=1, page_size=None):
     return query.all()
 
 
-
 def load_all_borrowed_books(user_id):
-    query = (db.session.query(BorrowDetails,Borrow,Book)
-             .join(Book, Book.id==BorrowDetails.book_id)
-             .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
-             .filter(Borrow.user_id== user_id)
+    update_overdue_status()
+
+    query = (db.session.query(BorrowDetails, Borrow, Book)
+             .join(Book, Book.id == BorrowDetails.book_id)
+             .join(Borrow, Borrow.id == BorrowDetails.borrow_id)
+             .filter(Borrow.user_id == user_id)
              .order_by(Borrow.create_date.desc())
              .all())
 
     return query
+
 
 def load_borrowed_books(user_id):
-    query = (db.session.query(BorrowDetails, Borrow,Book)
-             .join(Book,Book.id==BorrowDetails.book_id)
-             .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
-             .filter(Borrow.user_id==user_id, BorrowDetails.return_date != None)
+    update_overdue_status()
+
+    query = (db.session.query(BorrowDetails, Borrow, Book)
+             .join(Book, Book.id == BorrowDetails.book_id)
+             .join(Borrow, Borrow.id == BorrowDetails.borrow_id)
+             .filter(Borrow.user_id == user_id, BorrowDetails.return_date != None)
              .order_by(Borrow.create_date.desc())
              .all())
     return query
 
+
 def load_borrowing_books(user_id):
-    query = (db.session.query(BorrowDetails, Borrow,Book)
-             .join(Book,Book.id==BorrowDetails.book_id)
-             .join(Borrow, Borrow.id==BorrowDetails.borrow_id)
-             .filter(Borrow.user_id==user_id, BorrowDetails.return_date == None)
+    update_overdue_status()
+
+    query = (db.session.query(BorrowDetails, Borrow, Book)
+             .join(Book, Book.id == BorrowDetails.book_id)
+             .join(Borrow, Borrow.id == BorrowDetails.borrow_id)
+             .filter(Borrow.user_id == user_id, BorrowDetails.return_date == None)
              .order_by(Borrow.create_date.desc())
              .all())
     return query
@@ -98,6 +106,7 @@ def register(username, password, name):
     except IntegrityError:
         db.session.rollback()
         raise Exception('Username đã tồn tại!')
+
 
 def count_active_books(user_id):
     return db.session.query(BorrowDetails).join(Borrow).filter(
@@ -135,6 +144,7 @@ def add_borrow_record(user_id, book_id):
     db.session.rollback()
     return False
 
+
 def cart_stats(cart):
     total_quantity = 0
     if cart:
@@ -142,9 +152,10 @@ def cart_stats(cart):
             total_quantity += c['quantity']
     return {'total_quantity': total_quantity}
 
+
 def add_to_cart(cart, id, title):
     if not cart:
-        cart ={}
+        cart = {}
     id = str(id)
 
     if id in cart:
@@ -156,6 +167,7 @@ def add_to_cart(cart, id, title):
             'quantity': 1
         }
     return cart, True
+
 
 def add_multi_borrow_record(user_id, book_ids):
     try:
@@ -185,8 +197,118 @@ def add_multi_borrow_record(user_id, book_ids):
         return False, str(e)
 
 
+def update_overdue_status():
+    today = date.today()
+    details = BorrowDetails.query.filter(
+        BorrowDetails.status.in_([BorrowStatus.BORROWING, BorrowStatus.OVERDUE])
+    ).all()
+
+    late_days = 0
+    for detail in details:
+        due_date = detail.due_date.date() if isinstance(detail.due_date, datetime) else detail.due_date
+        if due_date and today > due_date:
+            detail.status = BorrowStatus.OVERDUE
+            late_days = (today - due_date).days
+            detail.fine = late_days * app.config['FINE_PER_DAY']
+
+    db.session.commit()
 
 
+def request_return_book(user_id, detail_id):
+    detail = (db.session.query(BorrowDetails)
+              .join(Borrow, Borrow.id == BorrowDetails.borrow_id)
+              .join(Book, Book.id == BorrowDetails.book_id)
+              .filter(BorrowDetails.id == detail_id)
+              .first())
+    if not detail:
+        raise ValueError('Bản ghi mượn sách không tồn tại!')
+
+    borrow = Borrow.query.get(detail.borrow_id)
+    book = Book.query.get(detail.book_id)
+
+    if not borrow:
+        raise LookupError("Dữ liệu phiếu mượn không tồn tại!")
+
+    if not book:
+        raise LookupError('Dữ liệu sách không tồn tại!')
+
+    if borrow.user_id != user_id:
+        raise PermissionError("Bạn không có quyền gửi yêu cầu trả cuốn sách này!")
+
+    if detail.status == BorrowStatus.RETURNED or detail.return_date is not None:
+        raise ValueError("Cuốn sách này đã được trả rồi!")
+
+    if detail.status == BorrowStatus.RETURNED_REQUEST:
+        raise ValueError("Bạn đã gửi yêu cầu trả sách trước đó rồi!")
+
+    detail.status = BorrowStatus.RETURNED_REQUEST
+    db.session.commit()
+
+    return detail
 
 
+def approve_return_book(detail_id):
+    detail = (db.session.query(BorrowDetails)
+              .join(Borrow, Borrow.id == BorrowDetails.borrow_id)
+              .join(Book, Book.id == BorrowDetails.book_id)
+              .filter(BorrowDetails.id == detail_id)
+              .first())
 
+    if not detail:
+        raise ValueError("Yêu cầu trả sách không tồn tại.")
+
+    book = Book.query.get(detail.book_id)
+    if not book:
+        raise LookupError("Sách không tồn tại trong hệ thống.")
+
+    if detail.status != BorrowStatus.RETURNED_REQUEST:
+        raise ValueError("Cuốn sách này chưa ở trạng thái chờ duyệt trả.")
+
+
+    detail.return_date = datetime.now()
+    detail.status = BorrowStatus.RETURNED
+
+    book.quantity = book.quantity + 1
+    if book.quantity > 0:
+        book.available = True
+
+    db.session.commit()
+
+    return {
+        "detail_id": detail.id,
+        "return_date": detail.return_date.strftime('%d/%m/%Y %H:%M:%S')
+    }
+
+
+def reject_return_request(detail_id):
+    detail = BorrowDetails.query.filter_by(id=detail_id).first()
+
+    if not detail:
+        raise ValueError("Yêu cầu trả sách không tồn tại.")
+
+    if detail.status != BorrowStatus.RETURNED_REQUEST:
+        raise ValueError("Cuốn sách này không ở trạng thái chờ duyệt.")
+
+    due_date = detail.due_date.date() if isinstance(detail.due_date, datetime) else detail.due_date
+    today = date.today()
+
+    if due_date and today > due_date:
+        detail.status = BorrowStatus.OVERDUE
+    else:
+        detail.status = BorrowStatus.BORROWING
+
+    db.session.commit()
+    return detail
+
+
+def get_return_requests():
+    update_overdue_status()
+
+    query = (db.session.query(BorrowDetails, Book, Borrow)
+             .join(Borrow, Borrow.id == BorrowDetails.borrow_id)
+             .join(Book, Book.id == BorrowDetails.book_id)
+             .filter(BorrowDetails.status == BorrowStatus.RETURNED_REQUEST)
+             .order_by(BorrowDetails.id.desc())
+             .all())
+
+    return query

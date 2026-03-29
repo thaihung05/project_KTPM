@@ -1,0 +1,67 @@
+{% extends 'layout/base.html' %}
+{% block title %}Quản lý sách{% endblock %}
+
+{% block content %}
+<div class="row mt-4 mb-5">
+
+    <h3 class="fw-bold text-dark mb-3">Quản lý sách</h3>
+
+    {% if requests %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th>Mã chi tiết</th>
+                <th>Tên sách</th>
+                <th>Tác giả</th>
+                <th>Người mượn</th>
+                <th>Ngày mượn</th>
+                <th>Hạn trả</th>
+                <th>Trạng thái</th>
+                <th>Phí phạt</th>
+                <th>Xác nhận</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for detail, book, borrow in requests %}
+            <tr>
+                <td>{{ detail.id }}</td>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td>{{ borrow.user.name }}</td>
+                <td>{{ detail.borrowed_date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ detail.due_date.strftime('%d/%m/%Y') }}</td>
+                <td>
+                    {% if detail.fine == 0 %}
+                    <span class="badge bg-success text-dark">Đúng hạn</span>
+                    {% else %}
+                    <span class="badge bg-danger text-white">Trễ hạn</span>
+                    {% endif %}
+                </td>
+                <td>{{ detail.fine }}</td>
+                <td>
+                    <button class="btn btn-success btn-sm" onclick="approveReturn({{ detail.id }})">
+                        Duyệt
+                    </button>
+
+                    <button class="btn btn-danger btn-sm" onclick="rejectReturn({{ detail.id }})">
+                        Từ chối
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        Hiện chưa có yêu cầu trả sách nào.
+    </div>
+    {% endif %}
+
+
+</div>
+
+<script src="{{ url_for('static', filename='js/admin_approve_request.js') }}"></script>
+
+{% endblock %}

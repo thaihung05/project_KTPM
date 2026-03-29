@@ -23,8 +23,6 @@ def login_process():
         next_page = request.args.get('next') or request.form.get('next')
         if next_page:
             return redirect(next_page)
-        if user.user_role == UserRole.ADMIN:
-            return redirect('/admin')
         return redirect('/')
     return render_template('login.html', err_msg='Username hoặc password không chính xác!')
 
@@ -99,7 +97,7 @@ def my_book_list():
     all_borrowed_books= dao.load_all_borrowed_books(current_user.id)
     error_msg=None
 
-    if all_borrowed_books is None:
+    if not all_borrowed_books:
         error_msg='Chưa có sách mượn!'
     return render_template('mybooks.html', all_borrowed_books=all_borrowed_books, error_msg=error_msg)
 
@@ -108,7 +106,7 @@ def my_borrowed_book():
     my_borrowed_books= dao.load_borrowed_books(current_user.id)
     error_msg=None
 
-    if my_borrowed_book is None:
+    if not my_borrowed_book:
         error_msg='Chưa có sách mượn'
     return render_template('mybooks.html',my_borrowed_books=my_borrowed_books,error_msg=error_msg)
 
@@ -118,30 +116,11 @@ def my_borrowing_book():
     my_borrowing_books= dao.load_borrowing_books(current_user.id)
     error_msg=None
 
-    if my_borrowed_book is None:
+    if not my_borrowed_book:
         error_msg='Chưa có sách mượn'
     return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
 
 
-# @app.route('/borrow/<int:book_id>', methods=['POST'])
-# @login_required
-# def borrow_process(book_id):
-#     if not current_user.active:
-#         flash("Tài khoản của bạn đã bị khóa!!Hãy liên lạc với admin để hiểu rõ hơn!!", "danger")
-#         return redirect(url_for('book_list'))
-#     if dao.count_active_books(current_user.id) > 5:
-#         flash("Bạn chỉ có thể mượn tối đa 5 quyển sách!!", "Warning")
-#         return redirect(url_for('book_list'))
-#     if dao.has_overdue_books(current_user.id):
-#         flash("Bạn đang nợ sách quá hạn!!", "danger")
-#         return redirect(url_for('book_list'))
-#     book = dao.Book.query.get(book_id)
-#     if not book or book.quantity <=0:
-#         flash("Sách đã hết bản!", "info")
-#         return redirect(url_for('book_list'))
-#     if dao.add_borrow_record(current_user.id, book_id):
-#         flash(f"Mượn thành công {book.title}!!", "success")
-#     return redirect(url_for('book_list'))
 
 @app.route('/api/borrow/<int:book_id>', methods=['POST'])
 @login_required
@@ -224,6 +203,78 @@ def confirm_borrow():
 
     return jsonify({'status': 500, 'message': msg})
 
+
+@app.route('/api/return-request/<int:detail_id>', methods=['POST'])
+@login_required
+def api_request_return_book(detail_id):
+    try:
+        detail = dao.request_return_book(user_id=current_user.id, detail_id=detail_id)
+
+        return jsonify({
+            "detail_id": detail.id,
+            "status": detail.status.value,
+            "message": "Gửi yêu cầu trả sách thành công. Vui lòng chờ ADMIN duyệt."
+        }), 200
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except LookupError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        return jsonify({"error": f"Lỗi hệ thống: {str(e)}"}), 500
+
+@app.route('/admin/approve_request_view')
+@login_required
+def admin_aprrove_request_view():
+    requests = dao.get_return_requests()
+    return render_template('admin_approve_request.html', requests=requests)
+
+
+
+
+
+@app.route('/api/admin/approve-return/<int:detail_id>', methods=['POST'])
+@login_required
+def api_approve_return(detail_id):
+    if current_user.user_role != UserRole.ADMIN:
+        return jsonify({"error": "Bạn không có quyền thực hiện chức năng này."}), 403
+
+    try:
+        result = dao.approve_return_book(detail_id)
+        return jsonify({
+            "message": "Duyệt trả sách thành công.",
+            "data": result
+        }), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except LookupError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        return jsonify({"error": f"Lỗi hệ thống: {str(e)}"}), 500
+
+
+
+@app.route('/api/admin/reject-return/<int:detail_id>', methods=['POST'])
+@login_required
+def api_reject_return(detail_id):
+    if current_user.user_role != UserRole.ADMIN:
+        return jsonify({"error": "Bạn không có quyền thực hiện chức năng này."}), 403
+
+    try:
+        detail = dao.reject_return_request(detail_id)
+        return jsonify({
+            "message": "Đã từ chối yêu cầu trả sách.",
+            "detail_id": detail.id,
+            "status": detail.status.value
+        }), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Lỗi hệ thống: {str(e)}"}), 500
 
 @login.user_loader
 def load_user(id):
