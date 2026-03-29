@@ -22,6 +22,10 @@
             <a href="/my_borrowing_books" class="list-group-item list-group-item-action fw-semibold">
                 Sách đang mượn
             </a>
+
+            <a href="/books" class="list-group-item list-group-item-action fw-semibold">
+                Quay về trang chủ
+            </a>
         </div>
     </div>
 
@@ -68,19 +72,38 @@
                                     detail.borrowed_date.strftime('%d/%m/%Y') if detail.borrowed_date else '' }}</p>
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Hạn trả: {{
                                     detail.due_date.strftime('%d/%m/%Y') if detail.due_date else '' }}</p>
-
                                 {% if detail.return_date %}
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Ngày trả: {{
                                     detail.return_date.strftime('%d/%m/%Y') if detail.return_date else '' }}</p>
                                 {% endif %}
-
-                                {% if detail.fine != 0 %}
+                                {% if detail.fine > 0 %}
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{
-                                    detail.fine if detail.fine else '' }}</p>
+                                    detail.fine }}</p>
                                 {% endif %}
-                                <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng: {{
-                                    'Đã trả sách' if detail.return_date else 'Đang mượn' }}</p>
+                                <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng:
+                                    {% if detail.status.name=='RETURNED' %}
+                                    Đã trả sách
+                                    {% elif detail.status.name=='BORROWING' or (detail.status.name=='RETURNED_REQUEST'
+                                    and detail.fine == 0)%}
+                                    Đang mượn
+                                    {% elif detail.status.name == 'OVERDUE' or (detail.status.name=='RETURNED_REQUEST'
+                                    and detail.fine > 0)%}
+                                    Trễ hạn
+                                    {% endif %}
+                                </p>
+
                             </div>
+                            {% if detail.status.name == 'BORROWING' or detail.status.name == 'OVERDUE' %}
+                            <button type="button" class="btn btn-danger btn-sm mt-2"
+                                    onclick="requestReturnBook({{ detail.id }})">
+                                Gửi yêu cầu trả sách
+                            </button>
+                            {% elif detail.status.name == 'RETURNED_REQUEST' %}
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" disabled>
+                                Đã gửi yêu cầu!
+                            </button>
+                            {% endif %}
+
                         </div>
                     </div>
                     {% endfor %}
@@ -106,9 +129,9 @@
                                     detail.due_date.strftime('%d/%m/%Y') if detail.due_date else '' }}</p>
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Ngày trả: {{
                                     detail.return_date.strftime('%d/%m/%Y') if detail.return_date else '' }}</p>
-                                {% if detail.fine != 0 %}
-                                <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{
-                                    detail.fine if detail.fine else '' }}</p>
+                                {% if detail.fine > 0 %}
+                                <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{ detail.fine
+                                    }}</p>
                                 {% endif %}
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng: Đã trả sách</p>
                             </div>
@@ -135,8 +158,24 @@
                                     detail.borrowed_date.strftime('%d/%m/%Y') if detail.borrowed_date else '' }}</p>
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Hạn trả: {{
                                     detail.due_date.strftime('%d/%m/%Y') if detail.due_date else '' }}</p>
-                                <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng: Đang mượn </p>
+                                {% if detail.fine > 0 %}
+                                <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{
+                                    detail.fine }}</p>
+                                {% endif %}
+                                <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng: {{ 'Đang mượn' if
+                                    (detail.status.name == 'BORROWING') else 'Trễ hạn' }} </p>
                             </div>
+
+                            {% if detail.status.name == 'BORROWING' or detail.status.name == 'OVERDUE' %}
+                            <button type="button" class="btn btn-danger btn-sm mt-2"
+                                    onclick="requestReturnBook({{ detail.id }})">
+                                Gửi yêu cầu trả sách
+                            </button>
+                            {% elif detail.status.name == 'RETURNED_REQUEST' %}
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" disabled>
+                                Đã gửi yêu cầu!
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -152,4 +191,7 @@
 
 
 </div>
+
+<script src="{{ url_for('static', filename='js/return_book.js') }}"></script>
+
 {% endblock %}
