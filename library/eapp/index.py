@@ -152,6 +152,7 @@ def cart_view():
     return render_template('cart.html', cart=session.get('cart', {}))
 
 @app.route('/api/cart', methods=['POST'])
+@login_required
 def add_to_cart_api():
     data = request.json
     cart = session.get('cart', {})
