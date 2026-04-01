@@ -14,7 +14,6 @@ function borrowBook(bookId) {
                 icon: "success",
                 showConfirmButton: false,
                 timer: 800,
-                timerProgressBar: true
             }).then(() => {
                 const qtyElement = document.getElementById(`qty-${bookId}`);
             if (qtyElement) {
@@ -26,7 +25,17 @@ function borrowBook(bookId) {
     })
     .catch(err => {
         console.error("Lỗi kết nối API:", err);
-        Swal.fire("Lỗi", "Không thể kết nối máy chủ", "error");
+        Swal.fire({
+                title: "Lỗi Hệ Thống!!",
+                text: "Vui lòng đăng nhập trước khi mượn sách!!",
+                icon: "error",
+                showConfirmButton: true,
+                showCancelButton: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                location.href = "/login";
+            }
+        })
     });
 }
 
@@ -54,7 +63,20 @@ function addToCart(id, title) {
             })
         }
         else {Swal.fire("Lỗi!!", data.message, "error")}
-    }).catch(err => console.error("Lỗi!!:", err))
+    }).catch(err => {
+        console.error("Lỗi kết nối API:", err);
+        Swal.fire({
+                title: "Lỗi Hệ Thống!!",
+                text: "Vui lòng đăng nhập trước khi bỏ giỏ hàng!!",
+                icon: "error",
+                showConfirmButton: true,
+                showCancelButton: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                location.href = "/login";
+            }
+        })
+    });
 }
 
 function deleteCart(id) {
