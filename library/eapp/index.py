@@ -1,3 +1,5 @@
+from asyncio import log
+
 from flask import render_template, request, redirect, session
 import math
 from flask import jsonify
@@ -254,6 +256,55 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 400
         except Exception as e:
             return jsonify({"error": f"Lỗi hệ thống: {str(e)}"}), 500
+
+    @app.route('/my_books_list')
+    def my_book_list():
+        all_borrowed_books= dao.load_all_borrowed_books(current_user.id)
+        error_msg=None
+
+        if all_borrowed_books is None:
+            error_msg='Chưa có sách mượn!'
+        return render_template('mybooks.html', all_borrowed_books=all_borrowed_books, error_msg=error_msg)
+
+    @app.route('/my_borrowed_books')
+    def my_borrowed_book():
+        my_borrowed_books= dao.load_borrowed_books(current_user.id)
+        error_msg=None
+
+        if my_borrowed_book is None:
+            error_msg='Chưa có sách mượn'
+        return render_template('mybooks.html',my_borrowed_books=my_borrowed_books,error_msg=error_msg)
+
+
+    @app.route('/my_borrowing_books')
+    def my_borrowing_book():
+        my_borrowing_books= dao.load_borrowing_books(current_user.id)
+        error_msg=None
+
+        if my_borrowed_book is None:
+            error_msg='Chưa có sách mượn'
+        return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
+
+    @app.route('/api/borrow/<int:book_id>', methods=['POST'])
+    @login_required
+    def api_borrow_books(book_id):
+        if not current_user.active:
+            return jsonify({'status': 403, 'message': 'Tài khoản của bạn đã bị khóa!!'})
+        if dao.count_active_books(current_user.id) >= 5:
+            return jsonify({'status': 400, 'message': 'Bạn chỉ có thể mượn tối đa 5 quyển sách!!'})
+        if dao.has_overdue_books(current_user.id):
+            return jsonify({'status': 400, 'message': 'Bạn có sách quá hạn chưa trả!!'})
+        book = dao.Book.query.get(book_id)
+        if not book or book.quantity <= 0:
+            return jsonify({'status': 404, 'message': f'Sách {book.title} không còn trong kho!!'})
+
+        if dao.add_borrow_record(current_user.id, book_id):
+            return jsonify({
+                'status': 200,
+                'message': f'Mượn thành công {book.title}!!',
+                'new_quantity': book.quantity
+            })
+        return jsonify({'status': 500, 'message': 'Hệ thống gặp lỗi!!'})
 
 
 @app.context_processor
