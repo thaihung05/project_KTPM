@@ -23,6 +23,8 @@ class BorrowStatus(UserEnum):
     BORROWING = 1
     RETURNED = 2
     OVERDUE=3
+    RETURNED_REQUEST=4
+
 
 class User(BaseModel, UserMixin):
     name = Column(String(50), nullable=False)
