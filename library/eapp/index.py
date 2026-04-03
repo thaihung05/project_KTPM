@@ -1,3 +1,5 @@
+from asyncio import log
+
 from flask import render_template, request, redirect, session
 import math
 from flask import jsonify
@@ -122,6 +124,15 @@ def my_borrowing_book():
         error_msg='Chưa có sách mượn'
     return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
 
+<<<<<<< Updated upstream
+=======
+    @app.route('/api/cart', methods=['POST'])
+    @login_required
+    def add_to_cart_api():
+        data = request.json
+        cart = session.get('cart', {})
+        new_cart, is_added = dao.add_to_cart(cart, data.get('id'), data.get('title'))
+>>>>>>> Stashed changes
 
 # @app.route('/borrow/<int:book_id>', methods=['POST'])
 # @login_required

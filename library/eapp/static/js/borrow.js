@@ -130,7 +130,7 @@ function borrowSelected() {
     let ids = Array.from(selectedCheckboxes).map(cb => cb.value);
 
     if (ids.length === 0) {
-        return Swal.fire("Thông báo", "Huy chưa chọn quyển nào để mượn hết!", "info");
+        return Swal.fire("Thông báo", "Bạn chưa chọn quyển nào để mượn hết!", "info");
     }
 
     fetch('/api/confirm-borrow', {
