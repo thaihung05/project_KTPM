@@ -73,6 +73,7 @@
                 <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
                     {% for b in books %}
                     <div class="col d-flex align-items-stretch book-card-frame">
+
                         <div class="card w-100 shadow-sm border p-2 rounded-3 text-center">
 
                             <img src="{{ url_for('static', filename=b.image.replace('static/', '')) if b.image else 'https://placehold.co/200x300?text=No+Cover' }}"

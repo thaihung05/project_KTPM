@@ -312,7 +312,6 @@ def get_return_requests():
              .all())
 
     return query
-
 def add_book(title, author, quantity, category_id, image=None):
     b = Book(
         title=title,
