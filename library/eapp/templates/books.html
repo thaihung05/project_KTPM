@@ -4,11 +4,14 @@
 {% block content %}
 <div class="row mt-4 mb-5">
 
-    <div class="p-5 mb-5 rounded-3 position-relative shadow-sm" style="background: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center; background-size: cover; min-height: 350px;">
-        <div class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="opacity: 0.7; border-radius: inherit;"></div>
+    <div class="p-5 mb-5 rounded-3 position-relative shadow-sm"
+         style="background: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center; background-size: cover; min-height: 350px;">
+        <div class="position-absolute top-0 start-0 w-100 h-100 bg-white"
+             style="opacity: 0.7; border-radius: inherit;"></div>
 
         <div class="position-relative mt-5 ms-md-4" style="z-index: 1;">
-            <h1 class="display-5 fw-bold text-dark mb-3" style="color: #444 !important;">Chào Mừng Bạn Đến Với TH-LIBRARY</h1>
+            <h1 class="display-5 fw-bold text-dark mb-3" style="color: #444 !important;">Chào Mừng Bạn Đến Với
+                TH-LIBRARY</h1>
         </div>
     </div>
 
@@ -19,25 +22,30 @@
                 <form action="/books" method="GET">
 
                     <div class="input-group shadow-sm rounded-3 overflow-hidden border mb-2">
-                        <input type="text" class="form-control border-0 py-2" placeholder="Tìm Kiếm Với ..." name="kw" value="{{ request.args.get('kw', '') }}">
+                        <input type="text" class="form-control border-0 py-2" placeholder="Tìm Kiếm Với ..." name="kw"
+                               value="{{ request.args.get('kw', '') }}">
                         <button class="btn btn-white bg-white border-0 text-muted" type="submit">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
 
-                    <select name="search_by" class="form-select shadow-sm border-light text-muted w-50" style="font-size: 0.9rem;">
+                    <select name="search_by" class="form-select shadow-sm border-light text-muted w-50"
+                            style="font-size: 0.9rem;">
                         <option value="title" {% if request.args.get('search_by') == 'title' or not request.args.get('search_by') %}selected{% endif %}>Tiêu Đề</option>
-                        <option value="author" {% if request.args.get('search_by') == 'author' %}selected{% endif %}>Tác Giả</option>
+                        <option value="author" {% if request.args.get('search_by') == 'author' %} selected
+                        {% endif %}>Tác Giả</option>
                     </select>
                 </form>
             </div>
         </div>
         <div class="list-group shadow-sm rounded-3">
-            <div class="list-group-item bg-primary text-white fw-bold py-3" style="background-color: #1c3d5a !important;">
+            <div class="list-group-item bg-primary text-white fw-bold py-3"
+                 style="background-color: #1c3d5a !important;">
                 <i class="fa fa-list me-2"></i> Thể Loại
             </div>
 
-            <a href="/books" class="list-group-item list-group-item-action fw-semibold {% if not request.args.get('category_id') %}text-primary bg-light{% endif %}">
+            <a href="/books"
+               class="list-group-item list-group-item-action fw-semibold {% if not request.args.get('category_id') %}text-primary bg-light{% endif %}">
                 Tất cả sách
             </a>
 
@@ -52,7 +60,7 @@
         </div>
     </div>
 
-    <div class="col-md-9" >
+    <div class="col-md-9">
         <h3 class="fw-bold text-dark mb-3">Tất Cả Sách</h3>
 
         <div class="card border border-light shadow-sm rounded-3">
@@ -61,72 +69,75 @@
             </div>
 
             <div class="card-body">
-                {% if error_msg %}
-                    <div class="alert alert-danger text-center mt-3 shadow-sm rounded-3">
-                        <i class="fa fa-exclamation-triangle me-2 fs-5"></i>
-                        <strong>Khoan đã!</strong> {{ error_msg }}
-                    </div>
-                {% elif books %}
-                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
-                      {% for b in books %}
-                        <div class="col d-flex align-items-stretch">
-                          <div class="card w-100 shadow-sm border p-2 rounded-3 text-center book-card-frame">
+                {% if books %}
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+                    {% for b in books %}
+                    <div class="col d-flex align-items-stretch book-card-frame">
+                        <div class="card w-100 shadow-sm border p-2 rounded-3 text-center">
 
                             <img src="{{ url_for('static', filename=b.image.replace('static/', '')) if b.image else 'https://placehold.co/200x300?text=No+Cover' }}"
-                                 class="card-img-top rounded mb-2" alt="{{ b.title }}" style="height: 200px; object-fit: cover;">
-
-                            {% if b.available and b.quantity > 0 %}
-                                <span class="badge bg-success w-100 mb-2 py-2" style="font-size: 0.8rem;">Còn {{ b.quantity }} quyển</span>
-                            {% else %}
-                                <span class="badge bg-danger w-100 mb-2 py-2" style="font-size: 0.8rem;">Đã hết</span>
-                            {% endif %}
+                                 class="card-img-top rounded mb-2" alt="{{ b.title }}"
+                                 style="height: 200px; object-fit: cover;">
 
                             <div class="card-body d-flex flex-column p-0 mt-1">
-                              <h6 class="card-title fw-bold text-dark mb-1" style="font-size: 0.95rem;">{{ b.title }}</h6>
-                              <p class="card-text text-dark mb-3" style="font-size: 0.85rem;">{{ b.author }}</p>
+                                <h6 class="card-title fw-bold text-dark mb-1"
+                                    style="font-size: 0.95rem; min-height: 2.4rem;">{{ b.title }}</h6>
+                                <p class="card-text text-muted mb-3" style="font-size: 0.85rem;">{{ b.author }}</p>
 
-                              <div class="mt-auto">
-                                  {% if b.available and b.quantity > 0 %}
-                                      <button class="btn btn-primary w-100 btn-sm rounded-pill fw-bold" onclick="addToBorrowList({{ b.id }}, '{{ b.title }}')">
-                                          Mượn ngay
-                                      </button>
-                                  {% else %}
-                                      <button class="btn btn-secondary w-100 btn-sm rounded-pill fw-bold" disabled>
-                                          Đã hết
-                                      </button>
-                                  {% endif %}
-                              </div>
+                                <div class="mt-auto">
+                                    {% if b.available and b.quantity > 0 %}
+                                    <button type="button" class="btn btn-primary w-100 btn-sm rounded-pill fw-bold"
+                                            onclick="borrowBook({{ b.id }})">
+                                        Mượn ngay
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-outline-primary w-100 mt-2 rounded-pill btn-sm fw-bold"
+                                            onclick="addToCart({{ b.id }}, '{{ b.title }}')">
+                                        <i class="fa fa-cart-plus me-1"></i>Thêm vào giỏ
+                                    </button>
+                                    <small class="text-muted d-block mt-1 text-center" id="qty-{{ b.id }}">
+                                        Còn {{ b.quantity }} quyển
+                                    </small>
+                                    {% else %}
+                                    <button class="btn btn-secondary w-100 btn-sm rounded-pill fw-bold" disabled>
+                                        Đã hết
+                                    </button>
+                                    {% endif %}
+                                </div>
+
                             </div>
-                          </div>
                         </div>
-                      {% endfor %}
                     </div>
+                    {% endfor %}
+                </div>
 
-                    {% if pages > 1 %}
-                    <nav aria-label="Page navigation" class="mt-5 mb-2">
-                        <ul class="pagination justify-content-center">
-                          {% for i in range(1, pages + 1) %}
-                          <li class="page-item {% if request.args.get('page', '1') == i|string %}active{% endif %}">
+                {% if pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-5 mb-2">
+                    <ul class="pagination justify-content-center">
+                        {% for i in range(1, pages + 1) %}
+                        <li class="page-item {% if request.args.get('page', '1') == i|string %}active{% endif %}">
                             <a class="page-link shadow-sm rounded-circle mx-1"
                                href="/books?page={{ i }}{% if request.args.get('kw') %}&kw={{ request.args.get('kw') }}{% endif %}{% if request.args.get('category_id') %}&category_id={{ request.args.get('category_id') }}{% endif %}{% if request.args.get('search_by') %}&search_by={{ request.args.get('search_by') }}{% endif %}"
-                              >
-                               {{ i }}
+                            >
+                                {{ i }}
                             </a>
-                          </li>
-                          {% endfor %}
-                        </ul>
-                    </nav>
-                    {% endif %}
-
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                {% endif %}
 
 
                 {% else %}
-                    <div class="alert alert-warning text-center mt-3">
-                        Không tìm thấy cuốn sách nào phù hợp!
-                    </div>
+                <div class="alert alert-warning text-center mt-3">
+                    Không tìm thấy cuốn sách nào phù hợp!
+                </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+
+<script src="{{ url_for('static', filename='js/borrow.js') }}"></script>
 {% endblock %}
