@@ -8,7 +8,7 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = "passwordAbc123"
     app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///:memory'
-    app.config["PAGE_SIZE"] = 50
+    app.config["PAGE_SIZE"] = 25
     app.config["TESTING"] = True
     db.init_app(app)
     register_routes(app)

@@ -16,11 +16,13 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item mx-lg-2 mt-3 mt-lg-0">
                     {% if current_user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link active" href="/cart">&#128722; <span class="badge bg-danger cart-counter">{{ cart_stats.total_quantity }}</span></a>
-                </li>
+                {% if current_user.user_role.name == 'USER' %}
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/cart">&#128722; <span class="badge bg-danger cart-counter">{{ cart_stats.total_quantity }}</span></a>
+                    </li>
+                    <li class="nav-item d-none d-lg-block mx-2"><span class="nav-link text-muted">|</span></li>
+                {% endif %}
 
-                <li class="nav-item d-none d-lg-block mx-2"><span class="nav-link text-muted">|</span></li>
 
                 <div class="dropdown ">
                     <button type="button" class="btn" data-bs-toggle="dropdown">
@@ -36,7 +38,9 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         {% if current_user.user_role.name == 'ADMIN' %}
-                        <li><a class="dropdown-item" href="/admin/approve_request_view">Quản lý sách</a></li>
+                        <li><a class="dropdown-item" href="/admin/approve_request_view">Quản lý Mượn/Trả</a></li>
+                        <li><a class="dropdown-item" href="/admin/admin_books">Quản lý sách</a></li>
+
                         {% else %}
                         <li><a class="dropdown-item" href="/my_books_list">Sách của tôi</a></li>
                         {% endif %}

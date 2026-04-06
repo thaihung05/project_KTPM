@@ -25,7 +25,10 @@ def register_routes(app):
             next_page = request.args.get('next') or request.form.get('next')
             if next_page:
                 return redirect(next_page)
-            return redirect('/')
+            if user.user_role == UserRole.ADMIN:
+                return redirect('/admin/approve_request_view')
+            else:
+                return redirect('/books')
         return render_template('login.html', err_msg='Username hoặc password không chính xác!')
 
     @app.route('/register')
@@ -53,6 +56,7 @@ def register_routes(app):
 
     @app.route('/logout')
     def logout_view():
+        session.pop('cart', None)
         logout_user()
         return redirect('/')
 
@@ -68,23 +72,20 @@ def register_routes(app):
         cate_id = request.args.get('category_id')
         pages = request.args.get('page', 1, type=int)
         search_by = request.args.get('search_by', 'title')
-
-        categories = dao.load_categories()
-        books = dao.load_books(kw=kw, search_by=search_by, cate_id=cate_id, page=pages)
-
         error_msg = None
-        books = []
-        pages = 0
-        categories = []
+
         if kw and len(kw) == 1:
             error_msg = "Vui lòng nhập từ 2 ký tự trở lên để tìm kiếm sách!!!"
+            books=[]
+            total_pages =0
+            categories = []
         else:
             categories = dao.load_categories()
             books = dao.load_books(kw=kw, search_by=search_by, cate_id=cate_id, page=pages)
             total_books = dao.count_books(kw=kw, cate_id=cate_id)
-            pages = math.ceil(total_books / app.config['PAGE_SIZE'])
+            total_pages = math.ceil(total_books / app.config['PAGE_SIZE'])
 
-        return render_template('books.html', books=books, pages=pages, categories=categories, error_msg=error_msg)
+        return render_template('books.html', books=books, pages=total_pages, categories=categories, error_msg=error_msg)
 
     @app.route('/my_books_list')
     @login_required
@@ -259,6 +260,56 @@ def register_routes(app):
             error_msg='Chưa có sách mượn'
         return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
 
+    @app.route('/admin/admin_books')
+    @login_required
+    def admin_books():
+        if current_user.user_role != UserRole.ADMIN:
+            return redirect('/')
+        page = request.args.get('page', 1, type=int)
+        total_books = dao.count_books()
+        total_pages = math.ceil(total_books / app.config['PAGE_SIZE'])
+        books = dao.load_books(page=page, page_size=app.config['PAGE_SIZE'])
+        categories = dao.load_categories()
+        return render_template('admin_books.html',pages=total_pages, books=books, categories=categories)
+
+    @app.route('/api/admin/books', methods=['POST'])
+    @login_required
+    def add_book():
+        title = request.form.get('title')
+        author = request.form.get('author')
+        quantity = request.form.get('quantity')
+        category_id = request.form.get('category_id')
+
+        image = request.files.get('image')
+
+        image_url = None
+        if image:
+            import cloudinary.uploader
+            res = cloudinary.uploader.upload(image)
+            image_url = res.get('secure_url')
+
+        dao.add_book(
+            title=title,
+            author=author,
+            quantity=quantity,
+            category_id=category_id,
+            image=image_url
+        )
+
+        return jsonify({'message': 'Thêm sách thành công'})
+
+    @app.route('/api/admin/books/<int:book_id>', methods=['DELETE'])
+    @login_required
+    def delete_book(book_id):
+        if current_user.user_role != UserRole.ADMIN:
+            return jsonify({'error': 'Không có quyền'}), 403
+
+        try:
+            dao.delete_book(book_id)
+            return jsonify({'message': 'Xóa sách thành công'}), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
 
 @app.context_processor
 def context_processor():
@@ -268,7 +319,6 @@ def context_processor():
 @login.user_loader
 def load_user(id):
     return dao.get_user_by_id(id)
-
 
 if __name__ == '__main__':
     register_routes(app)

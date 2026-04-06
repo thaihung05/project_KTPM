@@ -1,0 +1,152 @@
+{% extends 'layout/base.html' %}
+{% block title %}Quản lý sách{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h3 class="mb-3">📚 Quản lý sách</h3>
+
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addBookModal">
+        Thêm sách mới
+    </button>
+
+    <div class="modal fade" id="addBookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm sách mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input id="title" class="form-control mb-2" placeholder="Tên sách">
+                    <input id="author" class="form-control mb-2" placeholder="Tác giả">
+                    <input id="quantity" type="number" class="form-control mb-2" placeholder="Số lượng">
+                    <select id="category" class="form-control mb-2">
+                        {% for c in categories %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <input id="image" type="file" class="form-control mb-2">
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="addBook()">Thêm</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Tác giả</th>
+            <th>Số lượng</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for b in books %}
+        <tr>
+            <td>{{ b.id }}</td>
+            <td>{{ b.title }}</td>
+            <td>{{ b.author }}</td>
+            <td>{{ b.quantity }}</td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteBook({{ b.id }})">
+                    Xóa
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+                {% if pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-5 mb-2">
+                        <ul class="pagination justify-content-center">
+                            {% for i in range(1, pages + 1) %}
+                            <li class="page-item {% if request.args.get('page', '1') == i|string %}active{% endif %}">
+                                <a class="page-link shadow-sm rounded-circle mx-1"
+                                   href="/admin/admin_books?page={{ i }}"
+                                >
+                                    {{ i }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </nav>
+                {% endif %}
+
+</div>
+
+<script>
+    function addBook() {
+        let formData = new FormData()
+        formData.append("title", document.getElementById('title').value)
+        formData.append("author", document.getElementById('author').value)
+        formData.append("quantity", document.getElementById('quantity').value)
+        formData.append("category_id", document.getElementById('category').value)
+        let file = document.getElementById('image').files[0]
+        if (file) {
+            formData.append("image", file)
+        }
+        fetch('/api/admin/books', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            Swal.fire({
+                title: "Thành công!",
+                text: data.message,
+                icon: "success",
+                showConfirmButton: false,
+                timer: 1000,
+                timerProgressBar: true
+            }).then(() => {
+                location.reload()
+            })
+        })
+    }
+
+    function deleteBook(id) {
+        Swal.fire({
+            title: "Xóa sách?",
+            text: "Bạn chắc chắn muốn xóa sách này?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy",
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/api/admin/books/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(res => res.json().then(data => ({ status: res.status, body: data })))
+                .then(({ status, body }) => {
+                    if (status === 200) {
+                        Swal.fire({
+                            title: "Thành công!",
+                            text: body.message,
+                            icon: "success",
+                            timer: 1000,
+                            showConfirmButton: false
+                        }).then(() => location.reload())
+                    } else {
+                        Swal.fire("Lỗi", body.error || "Không xóa được", "error")
+                    }
+                })
+            }
+        })
+    }
+</script>
+
+{% endblock %}

@@ -312,3 +312,24 @@ def get_return_requests():
              .all())
 
     return query
+def add_book(title, author, quantity, category_id, image=None):
+    b = Book(
+        title=title,
+        author=author,
+        quantity=quantity,
+        category_id=category_id,
+        image=image,
+        available=True
+    )
+    db.session.add(b)
+    db.session.commit()
+
+def delete_book(book_id):
+    b = Book.query.get(book_id)
+    if not b:
+        raise ValueError("Sách không tồn tại")
+    is_used = BorrowDetails.query.filter_by(book_id=book_id).first()
+    if is_used:
+        raise Exception("Không thể xóa sách đang được mượn!")
+    db.session.delete(b)
+    db.session.commit()
