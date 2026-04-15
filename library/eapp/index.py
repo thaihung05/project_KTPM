@@ -19,13 +19,15 @@ def register_routes(app):
     def login_process():
         username = request.form.get('username')
         password = request.form.get('password')
+
+        if not username or not password:
+            return render_template('login.html', err_msg='Vui lòng nhập đầy đủ thông tin!')
+
         user = dao.auth_user(username, password)
         if user:
             login_user(user)
             next_page = request.args.get('next') or request.form.get('next')
-            if next_page:
-                return redirect(next_page)
-            return redirect('/')
+            return redirect(next_page) if next_page else redirect('/')
         return render_template('login.html', err_msg='Username hoặc password không chính xác!')
 
     @app.route('/register')
@@ -36,21 +38,22 @@ def register_routes(app):
     def register_process():
         data = request.form
 
+        username = data.get('username')
         password = data.get('password')
         confirm = data.get('confirm')
+        name = data.get('name')
+
+        if not username or not password or not confirm or not name:
+            return render_template('register.html', err_msg='Vui lòng điền đầy đủ thông tin!')
+
         if password != confirm:
-            err_msg = "Mật khẩu không khớp!"
-            return render_template('register.html', err_msg=err_msg)
+            return render_template('register.html', err_msg="Mật khẩu không khớp!")
 
         try:
-            register(username=data.get('username'),
-                     password=password,
-                     name=data.get('name'))
+            register(username=username, password=password, name=name)
             return redirect('/login')
-
-        except Exception as ex:
+        except Exception:
             return render_template('register.html', err_msg='Username này đã được đăng ký!!')
-
     @app.route('/logout')
     def logout_view():
         logout_user()
@@ -101,24 +104,33 @@ def register_routes(app):
     @login_required
     def api_borrow_books(book_id):
         if not current_user.active:
-            return jsonify({'status': 403, 'message': 'Tài khoản của bạn đã bị khóa!!'})
+            return jsonify({'status': 403, 'message': 'Tài khoản của bạn đã bị khóa!!'}),403
         if dao.count_active_books(current_user.id) >= 5:
-            return jsonify({'status': 400, 'message': 'Bạn chỉ có thể mượn tối đa 5 quyển sách!!'})
+            return jsonify({'status': 400, 'message': 'Bạn chỉ có thể mượn tối đa 5 quyển sách!!'}),400
         if dao.has_overdue_books(current_user.id):
-            return jsonify({'status': 400, 'message': 'Bạn có sách quá hạn chưa trả!!'})
-        book = dao.Book.query.get(book_id)
-        if not book or book.quantity <= 0:
-            return jsonify({'status': 404, 'message': f'Sách {book.title} không còn trong kho!!'})
-
-        if dao.add_borrow_record(current_user.id, book_id):
+            return jsonify({'status': 400, 'message': 'Bạn có sách quá hạn chưa trả!!'}),400
+        book = dao.get_book_by_id(book_id)
+        if not book:
             return jsonify({
-                'status': 200,
-                'message': f'Mượn thành công {book.title}!!',
-                'new_quantity': book.quantity
-            })
-        return jsonify({'status': 500, 'message': 'Hệ thống gặp lỗi!!'})
-
+                'status': 404,
+                'message': 'Sách không tồn tại trong hệ thống!!'
+            }), 404
+        if not isinstance(book.quantity, int) or book.quantity < 0:
+            return jsonify({'status': 500, 'message': 'Dữ liệu sách lỗi'}), 500
+        if book.quantity <= 0:
+            return jsonify({'status': 400, 'message': f'Sách {book.title} không còn trong kho!!'}), 400
+        try:
+            if dao.add_borrow_record(current_user.id, book_id):
+                return jsonify({
+                    'status': 200,
+                    'message': f'Mượn thành công {book.title}!!',
+                    'new_quantity': book.quantity
+                }), 200
+            return jsonify({'status': 500, 'message': 'Hệ thống gặp lỗi!!'}), 500
+        except Exception as e:
+            return jsonify({'status': 500, 'message': 'Lỗi hệ thống (DB)'}), 500
     @app.route('/cart')
+    @login_required
     def cart_view():
         return render_template('cart.html', cart=session.get('cart', {}))
 
@@ -136,13 +148,14 @@ def register_routes(app):
         return jsonify({'message': 'Sách này đã có trong danh sách!!'}), 400
 
     @app.route('/api/cart/<book_id>', methods=['DELETE'])
+    @login_required
     def delete_cart(book_id):
         cart = session.get('cart', {})
         if cart and book_id in cart:
             del cart[book_id]
             session['cart'] = cart
             return jsonify(dao.cart_stats(cart))
-        return jsonify({'message': 'Không tìm thấy sách!!'}), 400
+        return jsonify({'message': 'Không tìm thấy sách!!'}), 404
 
     @app.route('/api/confirm-borrow', methods=['POST'])
     @login_required
@@ -150,29 +163,31 @@ def register_routes(app):
         data = request.json
         book_ids = data.get('book_ids', [])
 
+        if not book_ids:
+            return jsonify({'status': 400, 'message': 'Vui lòng chọn ít nhất một quyển sách để mượn!'}), 400
         if not current_user.active:
-            return jsonify({'status': 403, 'message': 'Tài khoản của bạn đang bị khóa!'})
+            return jsonify({'status': 403, 'message': 'Tài khoản của bạn đang bị khóa!'}), 403
 
         active_count = dao.count_active_books(current_user.id)
         if active_count + len(book_ids) > 5:
             return jsonify({'status': 400,
-                            'message': f'Bạn đang mượn {active_count} quyển, chỉ được chọn thêm {5 - active_count} quyển nữa thôi!'})
+                            'message': f'Bạn đang mượn {active_count} quyển, chỉ được chọn thêm {5 - active_count} quyển nữa thôi!'}), 400
 
         if dao.has_overdue_books(current_user.id):
-            return jsonify({'status': 400, 'message': 'Bạn còn sách quá hạn chưa trả, trả xong mới được mượn tiếp!'})
+            return jsonify({'status': 400, 'message': 'Bạn còn sách quá hạn chưa trả, trả xong mới được mượn tiếp!'}), 400
+        try:
+            success, msg = dao.add_multi_borrow_record(current_user.id, book_ids)
 
-        success, msg = dao.add_multi_borrow_record(current_user.id, book_ids)
-
-        if success:
-            cart = session.get('cart', {})
-            for b_id in book_ids:
-                if str(b_id) in cart:
-                    del cart[str(b_id)]
-            session['cart'] = cart
-            return jsonify({'status': 200, 'message': msg})
-
-        return jsonify({'status': 500, 'message': msg})
-
+            if success:
+                cart = session.get('cart', {})
+                for b_id in book_ids:
+                    if str(b_id) in cart:
+                        del cart[str(b_id)]
+                session['cart'] = cart
+                return jsonify({'status': 200, 'message': msg})
+            return jsonify({'status': 500, 'message': msg})
+        except Exception as e:
+            return jsonify({'status': 500, 'message': f'Lỗi hệ thống: {str(e)}'}), 500
     @app.route('/api/return-request/<int:detail_id>', methods=['POST'])
     @login_required
     def api_request_return_book(detail_id):

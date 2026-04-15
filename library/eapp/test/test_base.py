@@ -1,15 +1,17 @@
 import pytest
 from flask import Flask
-from eapp import db
+from eapp import db, login
 from eapp.index import register_routes
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='../templates')
     app.secret_key = "passwordAbc123"
-    app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///:memory'
+    app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///:memory:'
     app.config["PAGE_SIZE"] = 50
     app.config["TESTING"] = True
+    app.config["LOGIN_DISABLED"] = False
+    login.init_app(app)
     db.init_app(app)
     register_routes(app)
     return app
@@ -30,3 +32,13 @@ def test_session(test_app):
 @pytest.fixture
 def test_client(test_app):
     return test_app.test_client()
+
+@pytest.fixture
+def fake_user(mocker):
+    class FakeUser:
+        id = 4
+        active = True
+        is_authenticated = True
+
+    mocker.patch('flask_login.utils._get_user', return_value=FakeUser())
+    return FakeUser()

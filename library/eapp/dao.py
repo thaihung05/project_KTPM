@@ -312,3 +312,6 @@ def get_return_requests():
              .all())
 
     return query
+
+def get_book_by_id(book_id):
+    return Book.query.get(book_id)
