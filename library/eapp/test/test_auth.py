@@ -1,3 +1,4 @@
+from eapp.models import UserRole
 from eapp.test.test_base import test_app, test_client, fake_user
 
 def test_register_success(test_client, mocker):
@@ -40,6 +41,7 @@ def test_login_success(test_client, mocker):
     class FakeUser:
         id = 1
         is_active = True
+        user_role = UserRole.USER
         def get_id(self):
             return str(self.id)
 
@@ -67,6 +69,7 @@ def test_login_sets_session(test_client, mocker):
     class FakeUser:
         id = 1
         is_active = True
+        user_role = UserRole.USER
         def get_id(self):
             return str(self.id)
 
@@ -84,6 +87,7 @@ def test_logout_when_logged_in(test_client, mocker):
     class FakeUser:
         id = 1
         is_active = True
+        user_role = UserRole.USER
         def get_id(self):
             return str(self.id)
 
@@ -151,6 +155,7 @@ def test_login_without_next_redirect_home(test_client, mocker):
     class FakeUser:
         id = 1
         is_active = True
+        user_role = UserRole.USER
         def get_id(self):
             return str(self.id)
 

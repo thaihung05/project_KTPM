@@ -2,6 +2,7 @@ import pytest
 from flask import Flask
 from eapp import db, login
 from eapp.index import register_routes
+from eapp.models import UserRole
 
 
 def create_app():
@@ -32,3 +33,13 @@ def test_session(test_app):
 @pytest.fixture
 def test_client(test_app):
     return test_app.test_client()
+
+@pytest.fixture
+def fake_user(test_app, mocker):
+    class FakeUser:
+        id = 4
+        is_authenticated = True
+        active=True
+        user_role = UserRole.USER
+
+    mocker.patch('flask_login.utils._get_user', new=FakeUser)
