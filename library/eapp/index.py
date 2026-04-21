@@ -87,7 +87,7 @@ def register_routes(app):
         else:
             categories = dao.load_categories()
             books = dao.load_books(kw=kw, search_by=search_by, cate_id=cate_id, page=pages)
-            total_books = dao.count_books(kw=kw, cate_id=cate_id)
+            total_books = dao.count_books(kw=kw,search_by=search_by, cate_id=cate_id)
             total_pages = math.ceil(total_books / app.config['PAGE_SIZE'])
 
         return render_template('books.html', books=books, pages=total_pages, categories=categories, error_msg=error_msg)
