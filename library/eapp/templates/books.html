@@ -131,7 +131,7 @@
 
                 {% else %}
                 <div class="alert alert-warning text-center mt-3">
-                    Không tìm thấy cuốn sách nào phù hợp!
+                    {{ error_msg if error_msg else "Không tìm thấy cuốn sách nào phù hợp!" }}
                 </div>
                 {% endif %}
             </div>
