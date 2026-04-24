@@ -333,3 +333,6 @@ def delete_book(book_id):
         raise Exception("Không thể xóa sách đang được mượn!")
     db.session.delete(b)
     db.session.commit()
+
+def get_book_by_id(book_id):
+    return Book.query.get(book_id)
