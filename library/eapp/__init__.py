@@ -21,3 +21,4 @@ cloudinary.config(
 )
 db = SQLAlchemy(app)
 login = LoginManager(app=app)
+login.login_view = 'login_view'
