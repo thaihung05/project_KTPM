@@ -276,3 +276,10 @@ if __name__ == '__main__':
             db.session.add(b)
 
         db.session.commit()
+
+        for i in range(1, 61):
+            b = Book(title=f"Sách lập trình Python tập {i}",
+                     category_id=1)  # Thay ID cho đúng thể loại trong DB của Huy
+            db.session.add(b)
+        db.session.commit()
+        print("Đã bơm xong 60 cuốn sách!")
