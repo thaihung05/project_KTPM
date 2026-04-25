@@ -1,5 +1,4 @@
 from asyncio import log
-
 from flask import render_template, request, redirect, session
 import math
 from flask import jsonify
@@ -8,7 +7,6 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 from eapp.dao import register
 from eapp.models import UserRole
-
 
 def register_routes(app):
     @app.route('/login', methods=['GET'])
@@ -73,7 +71,9 @@ def register_routes(app):
 
     @app.route('/books')
     def book_list():
-        kw = request.args.get('kw')
+        kw = request.args.get('kw', '')
+        kw = kw.strip()
+        kw = ' '.join(kw.split())
         cate_id = request.args.get('category_id')
         pages = request.args.get('page', 1, type=int)
         search_by = request.args.get('search_by', 'title')
@@ -87,7 +87,7 @@ def register_routes(app):
         else:
             categories = dao.load_categories()
             books = dao.load_books(kw=kw, search_by=search_by, cate_id=cate_id, page=pages)
-            total_books = dao.count_books(kw=kw, cate_id=cate_id)
+            total_books = dao.count_books(kw=kw,search_by=search_by, cate_id=cate_id)
             total_pages = math.ceil(total_books / app.config['PAGE_SIZE'])
 
         return render_template('books.html', books=books, pages=total_pages, categories=categories, error_msg=error_msg)

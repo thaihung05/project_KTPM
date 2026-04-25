@@ -10,7 +10,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Abc123@localhost/l
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.config["due_time"] = 14
 
-app.config["PAGE_SIZE"] = 25
+app.config["PAGE_SIZE"] = 50
 app.config['FINE_PER_DAY'] = 5000
 
 
