@@ -72,7 +72,9 @@ def register_routes(app):
 
     @app.route('/books')
     def book_list():
-        kw = request.args.get('kw', '').strip()
+        kw = request.args.get('kw', '')
+        kw = kw.strip()
+        kw = ' '.join(kw.split())
         cate_id = request.args.get('category_id')
         pages = request.args.get('page', 1, type=int)
         search_by = request.args.get('search_by', 'title')
