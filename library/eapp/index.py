@@ -95,12 +95,15 @@ def register_routes(app):
     @app.route('/my_books_list')
     @login_required
     def my_book_list():
-        all_borrowed_books = dao.load_all_borrowed_books(current_user.id)
         error_msg = None
-
-        if not all_borrowed_books:
-            error_msg = 'Chưa có sách mượn!'
-        return render_template('mybooks.html', all_borrowed_books=all_borrowed_books, error_msg=error_msg)
+        try:
+            all_borrowed_books = dao.load_all_borrowed_books(current_user.id)
+            if not all_borrowed_books:
+                error_msg = 'Chưa có sách!'
+            return render_template('mybooks.html', all_borrowed_books=all_borrowed_books, error_msg=error_msg)
+        except Exception as e:
+            error_msg = f'Lỗi hệ thống: {str(e)}'
+            return render_template('mybooks.html', all_borrowed_books=[], error_msg=error_msg), 500
 
 
     @app.route('/api/borrow/<int:book_id>', methods=['POST'])
@@ -222,7 +225,7 @@ def register_routes(app):
     @login_required
     def api_approve_return(detail_id):
         if current_user.user_role != UserRole.ADMIN:
-            return jsonify({"error": "Bạn không có quyền thực hiện chức năng này."}), 403
+            return jsonify({"error": "Bạn không có quyền thực hiện chức năng này"}), 403
 
         try:
             result = dao.approve_return_book(detail_id)
@@ -242,7 +245,7 @@ def register_routes(app):
     @login_required
     def api_reject_return(detail_id):
         if current_user.user_role != UserRole.ADMIN:
-            return jsonify({"error": "Bạn không có quyền thực hiện chức năng này."}), 403
+            return jsonify({"error": "Bạn không có quyền thực hiện chức năng này"}), 403
 
         try:
             detail = dao.reject_return_request(detail_id)
@@ -259,23 +262,33 @@ def register_routes(app):
 
 
     @app.route('/my_borrowed_books')
+    @login_required
     def my_borrowed_book():
-        my_borrowed_books= dao.load_borrowed_books(current_user.id)
         error_msg=None
+        try:
+            my_borrowed_books= dao.load_borrowed_books(current_user.id)
+            if not my_borrowed_books:
+                error_msg = 'Chưa có sách đã mượn!'
+            return render_template('mybooks.html', my_borrowed_books=my_borrowed_books, error_msg=error_msg)
+        except Exception as e:
+            error_msg = f'Lỗi hệ thống: {str(e)}'
+            return render_template('mybooks.html', my_borrowed_books=[], error_msg=error_msg), 500
 
-        if my_borrowed_book is None:
-            error_msg='Chưa có sách mượn'
-        return render_template('mybooks.html',my_borrowed_books=my_borrowed_books,error_msg=error_msg)
+
 
 
     @app.route('/my_borrowing_books')
+    @login_required
     def my_borrowing_book():
-        my_borrowing_books= dao.load_borrowing_books(current_user.id)
         error_msg=None
-
-        if my_borrowed_book is None:
-            error_msg='Chưa có sách mượn'
-        return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
+        try:
+            my_borrowing_books= dao.load_borrowing_books(current_user.id)
+            if not my_borrowing_books :
+                error_msg='Chưa có sách đang mượn!'
+            return render_template('mybooks.html',my_borrowing_books=my_borrowing_books,error_msg=error_msg)
+        except Exception as e:
+            error_msg = f'Lỗi hệ thống: {str(e)}'
+            return render_template('mybooks.html', my_borrowing_books=[], error_msg=error_msg), 500
 
     @app.route('/admin/admin_books')
     @login_required

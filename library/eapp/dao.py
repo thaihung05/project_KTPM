@@ -198,20 +198,24 @@ def add_multi_borrow_record(user_id, book_ids):
 
 
 def update_overdue_status():
-    today = date.today()
-    details = BorrowDetails.query.filter(
-        BorrowDetails.status.in_([BorrowStatus.BORROWING, BorrowStatus.OVERDUE])
-    ).all()
+    try:
+        today = date.today()
+        details = BorrowDetails.query.filter(
+            BorrowDetails.status.in_([BorrowStatus.BORROWING, BorrowStatus.OVERDUE])
+        ).all()
 
-    late_days = 0
-    for detail in details:
-        due_date = detail.due_date.date() if isinstance(detail.due_date, datetime) else detail.due_date
-        if due_date and today > due_date:
-            detail.status = BorrowStatus.OVERDUE
-            late_days = (today - due_date).days
-            detail.fine = late_days * app.config['FINE_PER_DAY']
+        late_days = 0
+        for detail in details:
+            due_date = detail.due_date.date() if isinstance(detail.due_date, datetime) else detail.due_date
+            if due_date and today > due_date:
+                detail.status = BorrowStatus.OVERDUE
+                late_days = (today - due_date).days
+                detail.fine = late_days * app.config['FINE_PER_DAY']
 
-    db.session.commit()
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise Exception("Lỗi cập nhật trạng thái overdue!")
 
 
 def request_return_book(user_id, detail_id):
@@ -255,14 +259,14 @@ def approve_return_book(detail_id):
               .first())
 
     if not detail:
-        raise ValueError("Yêu cầu trả sách không tồn tại.")
+        raise ValueError("Yêu cầu trả sách không tồn tại")
 
     book = Book.query.get(detail.book_id)
     if not book:
-        raise LookupError("Sách không tồn tại trong hệ thống.")
+        raise LookupError("Sách không tồn tại trong hệ thống")
 
     if detail.status != BorrowStatus.RETURNED_REQUEST:
-        raise ValueError("Cuốn sách này chưa ở trạng thái chờ duyệt trả.")
+        raise ValueError("Cuốn sách này chưa ở trạng thái chờ duyệt trả")
 
 
     detail.return_date = datetime.now()
@@ -284,7 +288,7 @@ def reject_return_request(detail_id):
     detail = BorrowDetails.query.filter_by(id=detail_id).first()
 
     if not detail:
-        raise ValueError("Yêu cầu trả sách không tồn tại.")
+        raise ValueError("Yêu cầu trả sách không tồn tại")
 
     if detail.status != BorrowStatus.RETURNED_REQUEST:
         raise ValueError("Cuốn sách này không ở trạng thái chờ duyệt.")
