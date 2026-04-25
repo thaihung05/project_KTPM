@@ -9,7 +9,6 @@ from flask_login import login_user, logout_user, current_user, login_required
 from eapp.dao import register
 from eapp.models import UserRole
 
-
 def register_routes(app):
     @app.route('/login', methods=['GET'])
     def login_view():
@@ -73,7 +72,7 @@ def register_routes(app):
 
     @app.route('/books')
     def book_list():
-        kw = request.args.get('kw')
+        kw = request.args.get('kw', '').strip()
         cate_id = request.args.get('category_id')
         pages = request.args.get('page', 1, type=int)
         search_by = request.args.get('search_by', 'title')
