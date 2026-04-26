@@ -38,6 +38,10 @@ class BasePage:
         self.wait_for_swal(timeout)
         self.click(By.CSS_SELECTOR, '.swal2-cancel')
 
+    def ok_swal(self, timeout = 10):
+        self.wait_for_swal(timeout)
+        self.click(By.CSS_SELECTOR, '.swal2-confirm.swal2-styled')
+
     def get_swal_message(self, timeout = 10):
         self.wait_for_swal(timeout)
         return self.find(By.CSS_SELECTOR, '.swal2-html-container').text
