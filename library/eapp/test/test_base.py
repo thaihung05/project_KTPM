@@ -7,7 +7,6 @@ from eapp.index import register_routes
 from eapp.models import UserRole, Book, Category, Borrow, BorrowDetails, BorrowStatus
 
 
-
 def create_app():
     app = Flask(__name__, template_folder='../templates')
     app.secret_key = "passwordAbc123"
@@ -60,6 +59,7 @@ def fake_user(test_app, mocker):
 
     mocker.patch('flask_login.utils._get_user', new=FakeUser)
 
+
 @pytest.fixture
 def fake_admin(test_app, mocker):
     class FakeAdmin:
@@ -69,6 +69,8 @@ def fake_admin(test_app, mocker):
         user_role = UserRole.ADMIN
 
     mocker.patch('flask_login.utils._get_user', return_value=FakeAdmin())
+
+
 @pytest.fixture()
 def sample_books(test_session):
     c1 = Category(id=1, name="CNTT")
@@ -80,7 +82,8 @@ def sample_books(test_session):
     b2 = Book(title="Python nâng cao và chuyên sâu", author="Nguyễn Thị B", quantity=8, category_id=1, available=True)
     b3 = Book(title="Java cơ bản cho người mới", author="Trần Văn A", quantity=5, category_id=1, available=True)
     b4 = Book(title="Dế Mèn phiêu lưu ký", author="Tô Hoài", quantity=7, category_id=2, available=True)
-    b5 = Book(title="Lập trình hướng đối tượng với Python", author="Nguyễn Văn C", quantity=6, category_id=1, available=True)
+    b5 = Book(title="Lập trình hướng đối tượng với Python", author="Nguyễn Văn C", quantity=6, category_id=1,
+              available=True)
     b6 = Book(title="Truyện Kiều - Nguyễn Du", author="Nguyễn Du", quantity=5, category_id=2, available=True)
     b7 = Book(title="Chí Phèo - Nam Cao", author="Nam Cao", quantity=4, category_id=2, available=True)
     b8 = Book(title="Số đỏ - Vũ Trọng Phụng", author="Vũ Trọng Phụng", quantity=3, category_id=2, available=True)
@@ -124,3 +127,6 @@ def sample_borrow_details(test_session, sample_borrows, sample_books):
     db.session.add_all(details)
     db.session.commit()
     return details
+
+
+

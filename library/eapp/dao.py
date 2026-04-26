@@ -215,7 +215,7 @@ def update_overdue_status():
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        raise Exception("Lỗi cập nhật trạng thái overdue!")
+        raise Exception("Lỗi cập nhật trạng thái overdue!." + str(e))
 
 
 def request_return_book(user_id, detail_id):

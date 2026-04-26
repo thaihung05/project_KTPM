@@ -1,6 +1,8 @@
+from datetime import date, datetime, timedelta
+
 import pytest
 
-from eapp.dao import request_return_book, approve_return_book, reject_return_request
+from eapp.dao import request_return_book, approve_return_book, reject_return_request, update_overdue_status
 from eapp.models import BorrowStatus, Book
 from eapp.test.test_base import test_session, test_app, test_client, fake_user, fake_admin, sample_borrows, \
     sample_books, sample_borrow_details
@@ -129,15 +131,19 @@ def test_request_return_dao_called_with_correct_args(test_client, mocker, fake_u
 def test_approve_return_success(test_client, mocker, fake_admin):
     mock_req = mocker.patch('eapp.dao.approve_return_book', return_value={
         'detail_id': 1,
-        'return_date': '25/04/2026 10:00:00'
+        'return_date': '25/04/2026 10:00:00',
+        'status': BorrowStatus.RETURNED.name
     })
 
     res = test_client.post('/api/admin/approve-return/1')
     data = res.get_json()
-
+    print(data)
     assert res.status_code == 200
     assert data['message'] == 'Duyệt trả sách thành công.'
     assert data['data']['detail_id'] == 1
+    assert data['data']['return_date']!=None
+    assert data['data']['status'] == BorrowStatus.RETURNED.name
+
 
     mock_req.assert_called_once()
 
@@ -314,7 +320,6 @@ def test_request_return_integration_not_exist(test_session, sample_borrow_detail
 
     with pytest.raises(ValueError, match='không tồn tại'):
         request_return_book(user_id=4, detail_id=None)
-        request_return_book(user_id=4, detail_id=10000)
 
 
 def test_approve_return_integration_success(test_session, sample_borrow_details):
@@ -344,7 +349,6 @@ def test_approve_return_integration_wrong_status(test_session, sample_borrow_det
 
 
 def test_reject_return_integration_before_due(test_session, sample_borrow_details):
-
     # d1 đang BORROWING, due_date mặc định (trong hạn)
     detail = sample_borrow_details[0]
     request_return_book(user_id=4, detail_id=detail.id)
@@ -355,7 +359,6 @@ def test_reject_return_integration_before_due(test_session, sample_borrow_detail
 
 
 def test_reject_return_integration_overdue(test_session, sample_borrow_details):
-
     # d6 đang RETURNED_REQUEST, dùng d3 (OVERDUE) đổi tay để test
     # Force detail sang RETURNED_REQUEST để test reject khi quá hạn
     detail_overdue = sample_borrow_details[2]  # due_date = now()-3 ngày
@@ -365,3 +368,121 @@ def test_reject_return_integration_overdue(test_session, sample_borrow_details):
     result = reject_return_request(detail_id=detail_overdue.id)
 
     assert result.status == BorrowStatus.OVERDUE
+
+
+def test_db_error_rollback(test_session, mocker, sample_borrow_details):
+    mocker.patch('eapp.dao.db.session.commit', side_effect=Exception('DB failure'))
+    mock_rollback = mocker.patch('eapp.dao.db.session.rollback')
+
+    with pytest.raises(Exception):
+        update_overdue_status()
+
+    mock_rollback.assert_called_once()
+
+
+def test_borrowing_not_due_unchanged(test_session, sample_borrow_details):
+    update_overdue_status()
+
+    d1 = sample_borrow_details[0]
+
+    test_session.refresh(d1)
+
+    assert d1.status == BorrowStatus.BORROWING
+    assert d1.fine == 0
+
+
+def test_overdue_fine_recalculated(test_session, sample_borrow_details):
+    update_overdue_status()
+
+    d3 = sample_borrow_details[2]
+    test_session.refresh(d3)
+
+    expected_days = (date.today() - d3.due_date.date()).days
+    expected_fine = expected_days * 5000
+
+    assert d3.status == BorrowStatus.OVERDUE
+    assert d3.fine == expected_fine
+
+
+def test_overdue_status_stays_overdue(test_session, sample_borrow_details):
+    update_overdue_status()
+
+    d3 = sample_borrow_details[2]
+    d4 = sample_borrow_details[3]
+    test_session.refresh(d3)
+    test_session.refresh(d4)
+
+    assert d3.status == BorrowStatus.OVERDUE
+    assert d4.status == BorrowStatus.OVERDUE
+
+
+def test_borrowing_to_overdue_when_past_due(test_session, sample_borrow_details):
+    d1 = sample_borrow_details[0]
+    d1.due_date = datetime.now() - timedelta(days=5)
+    test_session.commit()
+
+    update_overdue_status()
+
+    test_session.refresh(d1)
+    assert d1.status == BorrowStatus.OVERDUE
+    assert d1.fine == 5 * 5000
+
+
+def test_fine_boundary_one_day(test_session, sample_borrow_details):
+    d2 = sample_borrow_details[1]
+    d2.due_date = datetime.now() - timedelta(days=1)
+    test_session.commit()
+
+    update_overdue_status()
+
+    test_session.refresh(d2)
+    assert d2.status == BorrowStatus.OVERDUE
+    assert d2.fine == 5000
+
+
+def test_due_today_not_overdue(test_session, sample_borrow_details):
+    d1 = sample_borrow_details[0]
+    d1.due_date = datetime.combine(date.today(), datetime.min.time())
+    test_session.commit()
+
+    update_overdue_status()
+
+    test_session.refresh(d1)
+    assert d1.status == BorrowStatus.BORROWING
+    assert d1.fine == 0
+
+
+def test_multiple_calls(test_session, sample_borrow_details):
+    # Test xem phí phạt có bị nhân lên không
+    update_overdue_status()
+    update_overdue_status()
+    update_overdue_status()
+
+    d3 = sample_borrow_details[2]
+    test_session.refresh(d3)
+
+    expected_days = (date.today() - d3.due_date.date()).days
+    assert d3.fine == expected_days * 5000
+
+
+def test_returned_record_not_touched(test_session, sample_borrow_details):
+    update_overdue_status()
+
+    d5 = sample_borrow_details[4]
+    test_session.refresh(d5)
+
+    assert d5.status == BorrowStatus.RETURNED
+    assert d5.fine == 0
+
+
+def test_returned_request_fine_frozen(test_session, sample_borrow_details):
+    d6 = sample_borrow_details[5]
+    d6.due_date = datetime.now() - timedelta(days=5)
+    test_session.commit()
+
+    update_overdue_status()
+
+    test_session.refresh(d6)
+    assert d6.status == BorrowStatus.RETURNED_REQUEST
+    assert d6.fine == 0
+
