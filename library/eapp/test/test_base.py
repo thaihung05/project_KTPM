@@ -1,10 +1,14 @@
+import os
 from datetime import datetime, timedelta
 
 import pytest
 from flask import Flask
+from selenium.webdriver.chrome.service import Service
+
 from eapp import db, login
 from eapp.index import register_routes
 from eapp.models import UserRole, Book, Category, Borrow, BorrowDetails, BorrowStatus
+from selenium import webdriver
 
 
 def create_app():
@@ -128,5 +132,9 @@ def sample_borrow_details(test_session, sample_borrows, sample_books):
     db.session.commit()
     return details
 
-
-
+@pytest.fixture
+def driver():
+    service = Service(executable_path='.venv/chromedriver.exe')
+    driver = webdriver.Chrome(service=service)
+    yield driver
+    driver.quit()
