@@ -82,11 +82,11 @@
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng:
                                     {% if detail.status.name=='RETURNED' %}
                                     Đã trả sách
-                                    {% elif detail.status.name=='BORROWING' or (detail.status.name=='RETURNED_REQUEST'
-                                    and detail.fine == 0)%}
+                                    {% elif detail.status.name=='BORROWING'%}
                                     Đang mượn
-                                    {% elif detail.status.name == 'OVERDUE' or (detail.status.name=='RETURNED_REQUEST'
-                                    and detail.fine > 0)%}
+                                    {% elif detail.status.name=='RETURNED_REQUEST'%}
+                                    Đang trả sách
+                                    {% elif detail.status.name == 'OVERDUE'%}
                                     Trễ hạn
                                     {% endif %}
                                 </p>
