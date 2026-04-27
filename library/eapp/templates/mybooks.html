@@ -77,7 +77,7 @@
                                 {% endif %}
                                 {% if detail.fine > 0 %}
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{
-                                    detail.fine }}</p>
+                                    "{:,.0f}".format(detail.fine) }} VNĐ</p>
                                 {% endif %}
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng:
                                     {% if detail.status.name=='RETURNED' %}
@@ -129,8 +129,7 @@
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Ngày trả: {{
                                     detail.return_date.strftime('%d/%m/%Y') if detail.return_date else '' }}</p>
                                 {% if detail.fine > 0 %}
-                                <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{ detail.fine
-                                    }}</p>
+                                <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{ "{:,.0f}".format(detail.fine) }} VNĐ</p>
                                 {% endif %}
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng: Đã trả sách</p>
                             </div>
@@ -158,8 +157,7 @@
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Hạn trả: {{
                                     detail.due_date.strftime('%d/%m/%Y') if detail.due_date else '' }}</p>
                                 {% if detail.fine > 0 %}
-                                <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{
-                                    detail.fine }}</p>
+                                <p class="card-text text-dark" style="font-size: 0.85rem;">Phí phạt: {{ "{:,.0f}".format(detail.fine) }} VNĐ</p>
                                 {% endif %}
                                 <p class="card-text text-dark" style="font-size: 0.85rem;">Tình trạng: {{ 'Đang mượn' if
                                     (detail.status.name == 'BORROWING') else 'Trễ hạn' }} </p>

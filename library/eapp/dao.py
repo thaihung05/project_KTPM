@@ -1,3 +1,4 @@
+import math
 from datetime import date, datetime
 
 from flask import Flask
@@ -209,7 +210,8 @@ def update_overdue_status():
             due_date = detail.due_date
             if due_date and today > due_date:
                 detail.status = BorrowStatus.OVERDUE
-                late_days = (today - due_date).days
+                late_seconds = (today - due_date).total_seconds()
+                late_days = math.ceil(late_seconds / 86400)
                 detail.fine = late_days * app.config['FINE_PER_DAY']
 
         db.session.commit()
