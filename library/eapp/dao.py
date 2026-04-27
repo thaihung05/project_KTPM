@@ -199,14 +199,14 @@ def add_multi_borrow_record(user_id, book_ids):
 
 def update_overdue_status():
     try:
-        today = date.today()
+        today = datetime.now()
         details = BorrowDetails.query.filter(
             BorrowDetails.status.in_([BorrowStatus.BORROWING, BorrowStatus.OVERDUE])
         ).all()
 
         late_days = 0
         for detail in details:
-            due_date = detail.due_date.date() if isinstance(detail.due_date, datetime) else detail.due_date
+            due_date = detail.due_date
             if due_date and today > due_date:
                 detail.status = BorrowStatus.OVERDUE
                 late_days = (today - due_date).days
