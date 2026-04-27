@@ -149,7 +149,7 @@ if __name__ == '__main__':
              'image': IMG_PATH + 'chi_pheo.jpg'},
             {'title': 'Mắt biếc', 'author': 'Nguyễn Nhật Ánh', 'quantity': 40, 'cat': c2.id,
              'image': IMG_PATH + 'mat_biec.jpg'},
-            {'title': 'Tôi thấy hoa vàng trên cỏ xanh', 'author': 'Nguyễn Nhật Ánh', 'quantity': 38, 'cat': c2.id,
+            {'title': 'Tôi thấy hoa vàng trên cỏ xanh', 'author': 'Nguyễn Nhật Ánh', 'quantity': 1, 'cat': c2.id,
              'image': IMG_PATH + 'toi_thay_hoa_vang.jpg'},
             {'title': 'Cánh đồng bất tận', 'author': 'Nguyễn Ngọc Tư', 'quantity': 20, 'cat': c2.id,
              'image': IMG_PATH + 'canh_dong_bat_tan.jpg'},
@@ -279,7 +279,7 @@ if __name__ == '__main__':
 
         for i in range(1, 61):
             b = Book(title=f"Sách lập trình Python tập {i}",
-                     category_id=1)  # Thay ID cho đúng thể loại trong DB của Huy
+                     category_id=1)
             db.session.add(b)
         db.session.commit()
         print("Đã bơm xong 60 cuốn sách!")
