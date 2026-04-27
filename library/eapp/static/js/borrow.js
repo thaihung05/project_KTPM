@@ -16,9 +16,13 @@ function borrowBook(bookId) {
                 timer: 800,
             }).then(() => {
                 const qtyElement = document.getElementById(`qty-${bookId}`);
-            if (qtyElement) {
-                qtyElement.innerText = `Còn ${data.new_quantity} quyển`;
-            }
+                    if (qtyElement) {
+                        qtyElement.innerText = `Còn ${data.new_quantity} quyển`;
+                        if (data.new_quantity <= 0) {
+                            const parentDiv = qtyElement.parentElement;
+                               parentDiv.innerHTML = `<button class="btn btn-secondary w-100 btn-sm rounded-pill fw-bold" disabled>Đã hết</button>`;
+                        }
+                    }
             });
         } else {
             Swal.fire("Thông báo", data.message, "warning");        }
