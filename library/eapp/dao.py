@@ -1,3 +1,4 @@
+import math
 from datetime import date, datetime
 
 from flask import Flask
@@ -215,17 +216,18 @@ def add_multi_borrow_record(user_id, book_ids):
 
 def update_overdue_status():
     try:
-        today = date.today()
+        today = datetime.now()
         details = BorrowDetails.query.filter(
             BorrowDetails.status.in_([BorrowStatus.BORROWING, BorrowStatus.OVERDUE])
         ).all()
 
         late_days = 0
         for detail in details:
-            due_date = detail.due_date.date() if isinstance(detail.due_date, datetime) else detail.due_date
+            due_date = detail.due_date
             if due_date and today > due_date:
                 detail.status = BorrowStatus.OVERDUE
-                late_days = (today - due_date).days
+                late_seconds = (today - due_date).total_seconds()
+                late_days = math.ceil(late_seconds / 86400)
                 detail.fine = late_days * app.config['FINE_PER_DAY']
 
         db.session.commit()
