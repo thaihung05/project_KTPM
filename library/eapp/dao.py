@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from flask import Flask
 from pymysql import IntegrityError
+from sqlalchemy import or_
 
 from eapp.models import Category, Book, UserRole, BorrowDetails, Borrow, BorrowStatus
 from eapp import db, app
@@ -22,14 +23,20 @@ def load_categories():
 def load_books(kw=None, search_by=None, cate_id=None, page=1, page_size=None):
     query = Book.query
 
+    if cate_id:
+        cate_id = int(cate_id)
+        query = query.filter(Book.category_id == cate_id)
+
     if kw:
         if search_by == 'author':
             query = query.filter(Book.author.contains(kw))
         elif search_by == 'title':
             query = query.filter(Book.title.contains(kw))
-
-    if cate_id:
-        query = query.filter(Book.category_id.__eq__(cate_id))
+        else:
+            query = query.filter(
+                or_(Book.title.contains(kw),
+                    Book.author.contains(kw))
+            )
 
     if page:
         size = page_size if page_size else app.config.get('PAGE_SIZE')
@@ -78,14 +85,23 @@ def load_borrowing_books(user_id):
 
 def count_books(kw=None, search_by=None, cate_id=None):
     query = Book.query
+
+    if cate_id:
+        cate_id = int(cate_id)
+        query = query.filter(Book.category_id == cate_id)
+
     if kw:
         if search_by == 'author':
             query = query.filter(Book.author.contains(kw))
         elif search_by == 'title':
             query = query.filter(Book.title.contains(kw))
-
-    if cate_id:
-        query = query.filter(Book.category_id.__eq__(cate_id))
+        else:
+            query = query.filter(
+                or_(
+                    Book.title.contains(kw),
+                    Book.author.contains(kw)
+                )
+            )
 
     return query.count()
 
@@ -268,7 +284,6 @@ def approve_return_book(detail_id):
     if detail.status != BorrowStatus.RETURNED_REQUEST:
         raise ValueError("Cuốn sách này chưa ở trạng thái chờ duyệt trả")
 
-
     detail.return_date = datetime.now()
     detail.status = BorrowStatus.RETURNED
 
@@ -316,6 +331,8 @@ def get_return_requests():
              .all())
 
     return query
+
+
 def add_book(title, author, quantity, category_id, image=None):
     b = Book(
         title=title,
@@ -328,6 +345,7 @@ def add_book(title, author, quantity, category_id, image=None):
     db.session.add(b)
     db.session.commit()
 
+
 def delete_book(book_id):
     b = Book.query.get(book_id)
     if not b:
@@ -337,6 +355,7 @@ def delete_book(book_id):
         raise Exception("Không thể xóa sách đang được mượn!")
     db.session.delete(b)
     db.session.commit()
+
 
 def get_book_by_id(book_id):
     return Book.query.get(book_id)
