@@ -39,7 +39,7 @@
                     <span class="badge bg-danger text-white">Trễ hạn</span>
                     {% endif %}
                 </td>
-                <td>{{ detail.fine }}</td>
+                <td>{{ "{:,.0f}".format(detail.fine) }} VNĐ</td>
                 <td>
                     <button class="btn btn-success btn-sm" onclick="approveReturn({{ detail.id }})">
                         Duyệt
