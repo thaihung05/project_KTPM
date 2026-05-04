@@ -25,11 +25,10 @@ function approveReturn(detailId) {
                         'success'
                     ).then(() => location.reload());
                 } else {
-                    Swal.fire('Thông báo', body.error || 'Có lỗi xảy ra.', 'warning');
+                    Swal.fire('Thông báo', body.error || 'Có lỗi xảy ra.', 'error');
                 }
             })
             .catch(err => {
-                console.error(err);
                 Swal.fire('Lỗi', 'Không thể kết nối máy chủ.', 'error');
             });
         }
@@ -59,11 +58,10 @@ function rejectReturn(detailId) {
                     Swal.fire('Thành công!', body.message || 'Đã từ chối yêu cầu trả sách.', 'success')
                         .then(() => location.reload());
                 } else {
-                    Swal.fire('Thông báo', body.error || 'Có lỗi xảy ra.', 'warning');
+                    Swal.fire('Thông báo', body.error || 'Có lỗi xảy ra.', 'error');
                 }
             })
             .catch(err => {
-                console.error(err);
                 Swal.fire('Lỗi', 'Không thể kết nối máy chủ.', 'error');
             });
         }

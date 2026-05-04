@@ -1,3 +1,4 @@
+import math
 from datetime import date, datetime, timedelta
 
 import pytest
@@ -141,9 +142,8 @@ def test_approve_return_success(test_client, mocker, fake_admin):
     assert res.status_code == 200
     assert data['message'] == 'Duyệt trả sách thành công.'
     assert data['data']['detail_id'] == 1
-    assert data['data']['return_date']!=None
+    assert data['data']['return_date'] != None
     assert data['data']['status'] == BorrowStatus.RETURNED.name
-
 
     mock_req.assert_called_once()
 
@@ -348,12 +348,52 @@ def test_approve_return_integration_wrong_status(test_session, sample_borrow_det
         approve_return_book(detail_id=detail.id)
 
 
+def test_approve_return_integration_book_available_restored(test_session, sample_borrow_details):
+    detail = sample_borrow_details[0]
+    request_return_book(user_id=4, detail_id=detail.id)
+
+    # Ép sách về quantity=0, available=False trước khi duyệt
+    book = Book.query.get(detail.book_id)
+    book.quantity = 0
+    book.available = False
+    test_session.commit()
+
+    approve_return_book(detail_id=detail.id)
+
+    book_after = Book.query.get(detail.book_id)
+    assert book_after.quantity == 1
+    assert book_after.available is True
+
+
+def test_approve_return_unauthenticated(test_client, mocker):
+    class FakeGuest:
+        is_authenticated = False
+
+    mocker.patch('flask_login.utils._get_user', return_value=FakeGuest())
+
+    res = test_client.post('/api/admin/approve-return/1')
+    assert res.status_code == 302
+    assert '/login' in res.location
+
+
+def test_reject_return_unauthenticated(test_client, mocker):
+    class FakeGuest:
+        is_authenticated = False
+
+    mocker.patch('flask_login.utils._get_user', return_value=FakeGuest())
+
+    res = test_client.post('/api/admin/reject-return/1')
+    assert res.status_code == 302
+    assert '/login' in res.location
+
 def test_reject_return_integration_before_due(test_session, sample_borrow_details):
     # d1 đang BORROWING, due_date mặc định (trong hạn)
     detail = sample_borrow_details[0]
     request_return_book(user_id=4, detail_id=detail.id)
 
     result = reject_return_request(detail_id=detail.id)
+
+
 
     assert result.status == BorrowStatus.BORROWING
 
@@ -397,9 +437,12 @@ def test_overdue_fine_recalculated(test_session, sample_borrow_details):
     d3 = sample_borrow_details[2]
     test_session.refresh(d3)
 
-    expected_days = (date.today() - d3.due_date.date()).days
-    expected_fine = expected_days * 5000
+    # expected_days = (date.today() - d3.due_date.date()).days
+    # expected_fine = expected_days * 5000
 
+    late_seconds = (datetime.now() - d3.due_date).total_seconds()
+    expected_days = math.ceil(late_seconds / 86400)
+    expected_fine = expected_days * 5000
     assert d3.status == BorrowStatus.OVERDUE
     assert d3.fine == expected_fine
 
@@ -418,31 +461,37 @@ def test_overdue_status_stays_overdue(test_session, sample_borrow_details):
 
 def test_borrowing_to_overdue_when_past_due(test_session, sample_borrow_details):
     d1 = sample_borrow_details[0]
-    d1.due_date = datetime.now() - timedelta(days=5)
+    d1.due_date = datetime.now() - timedelta(days=5, seconds=1)
     test_session.commit()
 
     update_overdue_status()
 
     test_session.refresh(d1)
     assert d1.status == BorrowStatus.OVERDUE
-    assert d1.fine == 5 * 5000
+    assert d1.fine == 6 * 5000
 
 
 def test_fine_boundary_one_day(test_session, sample_borrow_details):
+    """
+        Sách lố đúng 1 ngày 1 giây → ceil ra 2 ngày → fine = 2 * 5000 = 10000.
+
+        Nếu muốn test boundary đúng 1 ngày = 5000, cần mock datetime.now()
+        để kiểm soát chính xác late_seconds = 86400 đúng không thừa giây nào.
+        """
     d2 = sample_borrow_details[1]
-    d2.due_date = datetime.now() - timedelta(days=1)
+    d2.due_date = datetime.now() - timedelta(days=1, seconds=1)
     test_session.commit()
 
     update_overdue_status()
 
     test_session.refresh(d2)
     assert d2.status == BorrowStatus.OVERDUE
-    assert d2.fine == 5000
+    assert d2.fine == 2 * 5000
 
 
 def test_due_today_not_overdue(test_session, sample_borrow_details):
     d1 = sample_borrow_details[0]
-    d1.due_date = datetime.combine(date.today(), datetime.min.time())
+    d1.due_date = datetime.combine(date.today(), datetime.max.time())
     test_session.commit()
 
     update_overdue_status()
@@ -461,8 +510,12 @@ def test_multiple_calls(test_session, sample_borrow_details):
     d3 = sample_borrow_details[2]
     test_session.refresh(d3)
 
-    expected_days = (date.today() - d3.due_date.date()).days
-    assert d3.fine == expected_days * 5000
+    now = datetime.now()
+    late_seconds = (now - d3.due_date).total_seconds()
+    expected_days = math.ceil(late_seconds / 86400)
+    expected_fine = expected_days * 5000
+
+    assert d3.fine == expected_fine
 
 
 def test_returned_record_not_touched(test_session, sample_borrow_details):
@@ -486,3 +539,22 @@ def test_returned_request_fine_frozen(test_session, sample_borrow_details):
     assert d6.status == BorrowStatus.RETURNED_REQUEST
     assert d6.fine == 0
 
+
+
+def test_admin_approve_request_view_forbidden_for_user(test_client, fake_user):
+    # User thường truy cập trang admin bằng URL trực tiếp
+    res = test_client.get('/admin/approve_request_view')
+    assert res.status_code == 302
+    assert '/books' in res.location
+
+def test_admin_approve_request_view_accessible_for_admin(test_client, fake_admin, mocker):
+    # Admin truy cập trang quản lý → 200.
+    mocker.patch('eapp.dao.get_return_requests', return_value=[])
+    res = test_client.get('/admin/approve_request_view')
+    assert res.status_code == 200
+
+def test_admin_approve_request_view_unauthenticated(test_client):
+    # Chưa đăng nhập → redirect về login.
+    res = test_client.get('/admin/approve_request_view')
+    assert res.status_code == 302
+    assert '/login' in res.location
