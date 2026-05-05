@@ -1,5 +1,5 @@
 from asyncio import log
-from flask import render_template, request, redirect, session
+from flask import render_template, request, redirect, session, flash
 import math
 from flask import jsonify
 from eapp import app, dao, login
@@ -218,6 +218,9 @@ def register_routes(app):
     @app.route('/admin/approve_request_view')
     @login_required
     def admin_aprrove_request_view():
+        if current_user.user_role != UserRole.ADMIN:
+            flash('Bạn không có quyền truy cập trang này!', 'danger')
+            return redirect('/books')
         requests = dao.get_return_requests()
         return render_template('admin_approve_request.html', requests=requests)
 
