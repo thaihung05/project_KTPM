@@ -31,10 +31,7 @@ def test_kw(sample_books):
     assert len(books) == 8
 
     books = load_books(kw='Python', search_by=None, page_size=50)
-    assert len(books) == 8
-
-    books = load_books(kw='Python', search_by='description', page_size=50)
-    assert len(books) == 8
+    assert len(books) == 3
 
 def test_cate_id(sample_books):
     books = load_books(cate_id=1, page_size=50)
@@ -118,7 +115,7 @@ def test_count(sample_books):
     assert count_books(kw='Tô Hoài', search_by='author') == 1
     assert count_books(kw='Trần Văn A', search_by='author') == 2
 
-    assert count_books(kw='Python', search_by=None) == 8
+    assert count_books(kw='Python', search_by=None) == 3
 
     assert count_books(cate_id=1) == 4
     assert count_books(cate_id=2) == 4

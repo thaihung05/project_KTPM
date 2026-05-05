@@ -76,9 +76,10 @@ def test_return_button_disabled_after_request(driver):
     driver.refresh()
     time.sleep(2)
 
-    btns = driver.find_elements(*MyBookPage.RETURN_BTN)
+    requested_badges = driver.find_elements(*MyBookPage.REQUESTED_BADGE)
+    assert len(requested_badges) > 0
+    assert requested_badges[0].is_displayed()
 
-    if btns:
-        assert not btns[0].is_enabled()
-    else:
-        assert True
+    other_btns = driver.find_elements(*MyBookPage.RETURN_BTN)
+    for btn in other_btns:
+        assert btn.is_enabled()
