@@ -13,7 +13,7 @@ function borrowBook(bookId) {
                 text: data.message,
                 icon: "success",
                 showConfirmButton: false,
-                timer: 800,
+                timer: 1000,
             }).then(() => {
                 const qtyElement = document.getElementById(`qty-${bookId}`);
                     if (qtyElement) {
