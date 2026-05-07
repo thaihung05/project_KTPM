@@ -11,7 +11,9 @@
         <div class="mb-4">
             <div class="mb-4">
                 <form action="/books" method="GET">
-                    <input type="hidden" name="category_id" value="{{ request.args.get('category_id') }}">
+                    {% if request.args.get('category_id') %}
+                        <input type="hidden" name="category_id" value="{{ request.args.get('category_id') }}">
+                    {% endif %}
 
                     <div class="input-group shadow-sm rounded-3 overflow-hidden border mb-2">
                         <input type="text" class="form-control border-0 py-2" placeholder="Tìm Kiếm Với ..." name="kw"
@@ -28,9 +30,6 @@
                         </option>
                         <option value="author" {% if request.args.get('search_by') == 'author' %} selected
                         {% endif %}>Tác Giả
-                        </option>
-                        <option value="category" {% if request.args.get('search_by') == 'category' %} selected
-                        {% endif %}>Thể loại
                         </option>
                     </select>
                 </form>
@@ -142,4 +141,5 @@
 
 
 <script src="{{ url_for('static', filename='js/borrow.js') }}"></script>
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
 {% endblock %}

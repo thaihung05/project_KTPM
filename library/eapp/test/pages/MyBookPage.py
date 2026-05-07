@@ -10,6 +10,8 @@ class MyBookPage(BasePage):
 
     RETURN_BTN = (By.CSS_SELECTOR, '.btn-danger.btn-sm')
     REQUESTED_BADGE = (By.CSS_SELECTOR, '.btn-secondary.btn-sm')
+    BOOK_TITLE = (By.CSS_SELECTOR, '.card-title')
+    STATUS_BOOK = (By.CSS_SELECTOR, '.card-body p.card-text.text-dark')
 
     def open_page(self):
         self.driver.get(self.URL)
