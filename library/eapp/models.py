@@ -102,6 +102,8 @@ if __name__ == '__main__':
                   password=hashlib.md5('123'.encode()).hexdigest(), user_role=UserRole.USER)
         u4 = User(name='Văn Long', username='vanlong01',
                   password=hashlib.md5('Abc123'.encode()).hexdigest(), user_role=UserRole.USER)
+        u5 = User(name='Hùng', username='hung1234',
+                  password=hashlib.md5('1234'.encode()).hexdigest(), user_role=UserRole.USER)
 
         db.session.add_all([u1, u2, u3, u4])
         db.session.commit()
