@@ -3,7 +3,7 @@ from eapp.test.pages.BasePage import BasePage
 
 
 class LoginPage(BasePage):
-    URL = "http://localhost:5000/login"
+    URL = "http://127.0.0.1:5000/login"
     USERNAME = (By.NAME, "username")
     PASSWORD = (By.NAME, "password")
     LOGIN_BTN = (By.CSS_SELECTOR, "button.btn.btn-primary.w-100")
