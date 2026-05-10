@@ -22,8 +22,8 @@ class UserRole(UserEnum):
 class BorrowStatus(UserEnum):
     BORROWING = 1
     RETURNED = 2
-    OVERDUE=3
-    RETURNED_REQUEST=4
+    OVERDUE = 3
+    RETURNED_REQUEST = 4
 
 
 class User(BaseModel, UserMixin):
@@ -102,15 +102,31 @@ if __name__ == '__main__':
                   password=hashlib.md5('123'.encode()).hexdigest(), user_role=UserRole.USER)
         u4 = User(name='Văn Long', username='vanlong01',
                   password=hashlib.md5('Abc123'.encode()).hexdigest(), user_role=UserRole.USER)
-        u5 = User(name='Hùng', username='hung1234',
+        u5 = User(name='User 5 sách', username='test5books',
+                  password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u6 = User(name='User 4 sách', username='test4books',
+                  password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u7 = User(name='User 1 sách', username='test1books',
+                  password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u8 = User(name='User locked', username='testlocked',
+                  password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER, active=False)
+        u9 = User(name='User 3 Sách', username='test3books',
+                  password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u10 = User(name='User Quá Hạn', username='useroverdue',
+                   password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u11 = User(name='User Đã Trả Quá Hạn', username='userreturnedoverdue',
+                   password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u12 = User(name='User Trả Đúng Hạn', username='userreturnedontime',
+                   password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u13 = User(name='Hùng', username='hung1234',
                   password=hashlib.md5('1234'.encode()).hexdigest(), user_role=UserRole.USER)
 
-        db.session.add_all([u1, u2, u3, u4])
+        db.session.add_all([u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13])
         db.session.commit()
         IMG_PATH = 'static/images/books/'
 
         books_data = [
-            {'title': 'Cấu trúc dữ liệu và giải thuật', 'author': 'Lê Minh Hoàng', 'quantity': 30, 'cat': c1.id,
+            {'title': 'Cấu trúc dữ liệu và giải thuật', 'author': 'Lê Minh Hoàng', 'quantity': 0, 'cat': c1.id,
              'image': IMG_PATH + 'ctdl_gt_leminhhoang.jpg'},
             {'title': 'Giáo trình Ngôn ngữ lập trình C++', 'author': 'Vũ Việt Vũ', 'quantity': 25, 'cat': c1.id,
              'image': IMG_PATH + 'gt_vvv.jpg'},
@@ -137,8 +153,8 @@ if __name__ == '__main__':
             {'title': 'Hệ thống nhúng và IoT', 'author': 'Đỗ Văn Đỉnh', 'quantity': 11, 'cat': c1.id,
              'image': IMG_PATH + 'embedded_iot.jpg'},
             {'title': 'Quản lý dự án phần mềm theo Agile/Scrum', 'author': 'Andrew Pham và Phuong - Van Pham',
-             'quantity': 9, 'cat': c1.id, 'image': IMG_PATH + 'agile_scrum.jpg'},
-            {'title': 'Nhập môn Công nghệ phần mềm', 'author': 'Dương Hữu Thành', 'quantity': 13, 'cat': c1.id,
+             'quantity': 1, 'cat': c1.id, 'image': IMG_PATH + 'agile_scrum.jpg'},
+            {'title': 'Nhập môn Công nghệ phần mềm', 'author': 'Dương Hữu Thành', 'quantity': 1, 'cat': c1.id,
              'image': IMG_PATH + 'nhapmon_cnpm.jpg'},
 
             {'title': 'Truyện Kiều', 'author': 'Nguyễn Du', 'quantity': 50, 'cat': c2.id,
@@ -285,3 +301,81 @@ if __name__ == '__main__':
             db.session.add(b)
         db.session.commit()
         print("Đã bơm xong 60 cuốn sách!")
+
+        future = datetime.now() + timedelta(days=10)
+        past = datetime.now() - timedelta(days=5)
+
+        # user5books: 5 cuốn đang mượn (book id 1–5)
+        for book_id in range(1, 6):
+            br = Borrow(user_id=u5.id)
+            db.session.add(br)
+            db.session.flush()
+            db.session.add(BorrowDetails(borrow_id=br.id, book_id=book_id, due_date=future))
+        db.session.commit()
+
+        # user4books: 4 cuốn đang mượn (book id 1–4)
+        for book_id in range(1, 5):
+            br = Borrow(user_id=u6.id)
+            db.session.add(br)
+            db.session.flush()
+            db.session.add(BorrowDetails(borrow_id=br.id, book_id=book_id, due_date=future))
+        db.session.commit()
+
+        # user1book: 1 cuốn đang mượn (book id 1)
+        br = Borrow(user_id=u7.id)
+        db.session.add(br)
+        db.session.flush()
+        db.session.add(BorrowDetails(borrow_id=br.id, book_id=1, due_date=future))
+        db.session.commit()
+
+        # user3books: 3 cuốn đang mượn (book id 1–3)
+        for book_id in range(1, 4):
+            br = Borrow(user_id=u9.id)
+            db.session.add(br)
+            db.session.flush()
+            db.session.add(BorrowDetails(borrow_id=br.id, book_id=book_id, due_date=future))
+        db.session.commit()
+
+        # useroverdue: 1 cuốn quá hạn (book id 1, due_date đã qua)
+        br = Borrow(user_id=u10.id)
+        db.session.add(br)
+        db.session.flush()
+        db.session.add(BorrowDetails(
+            borrow_id=br.id, book_id=1,
+            due_date=past,
+            status=BorrowStatus.OVERDUE
+        ))
+        db.session.commit()
+
+        # userreturnedoverdue: đã từng có sách quá hạn nhưng đã trả rồi
+        # due_date = 20 ngày trước, return_date = 10 ngày trước → trả muộn 10 ngày
+        very_past_due = datetime.now() - timedelta(days=20)
+        very_past_return = datetime.now() - timedelta(days=10)
+        br = Borrow(user_id=u11.id)
+        db.session.add(br)
+        db.session.flush()
+        db.session.add(BorrowDetails(
+            borrow_id=br.id, book_id=2,
+            due_date=very_past_due,
+            return_date=very_past_return,
+            status=BorrowStatus.RETURNED
+        ))
+        db.session.commit()
+
+        # userreturnedontime: đã từng mượn và trả đúng hạn (trước due_date)
+        # due_date = 10 ngày trước, return_date = 15 ngày trước → trả trước hạn 5 ngày
+        on_time_due = datetime.now() - timedelta(days=10)
+        on_time_return = datetime.now() - timedelta(days=15)
+        br = Borrow(user_id=u12.id)
+        db.session.add(br)
+        db.session.flush()
+        db.session.add(BorrowDetails(
+            borrow_id=br.id, book_id=3,
+            due_date=on_time_due,
+            return_date=on_time_return,
+            status=BorrowStatus.RETURNED
+        ))
+        db.session.commit()
+
+        print("Đã tạo xong test users cho Selenium!")
+

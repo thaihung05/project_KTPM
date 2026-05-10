@@ -1,9 +1,16 @@
+from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.ie.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
+
+
 class BasePage:
     BASE_URL = "http://localhost:5000"
+
+
 
     def __init__(self, driver):
         self.driver = driver
@@ -44,4 +51,4 @@ class BasePage:
 
     def get_swal_message(self, timeout = 10):
         self.wait_for_swal(timeout)
-        return self.find(By.CSS_SELECTOR, '.swal2-html-container').text
+        return str(self.find(By.ID, 'swal2-html-container').text)
