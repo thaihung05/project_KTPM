@@ -6,13 +6,13 @@ from eapp.test.pages.MyBookPage import MyBookPage
 from eapp.test.test_base import driver
 
 USER = ('hung123', '123')
+EMPTY_USER = ('hung1234', '1234')
 
 
 def login_and_open(driver):
     login = LoginPage(driver=driver)
     login.open_page()
     login.login(*USER)
-    time.sleep(2)
 
     page = MyBookPage(driver=driver)
     page.open_page()
@@ -44,17 +44,11 @@ def test_return_book_cancel_does_nothing(driver):
 
 def test_return_book_success(driver):
     page = login_and_open(driver)
-
     page.click_return_book()
     time.sleep(2)
-
     page.confirm_swal()
     time.sleep(2)
-
     page.ok_swal()
-    time.sleep(2)
-
-    driver.refresh()
     time.sleep(2)
 
     elements = driver.find_elements(*MyBookPage.REQUESTED_BADGE)
@@ -63,17 +57,11 @@ def test_return_book_success(driver):
 
 def test_return_button_disabled_after_request(driver):
     page = login_and_open(driver)
-
     page.click_return_book()
     time.sleep(2)
-
     page.confirm_swal()
     time.sleep(2)
-
     page.ok_swal()
-    time.sleep(2)
-
-    driver.refresh()
     time.sleep(2)
 
     requested_badges = driver.find_elements(*MyBookPage.REQUESTED_BADGE)
@@ -83,3 +71,42 @@ def test_return_button_disabled_after_request(driver):
     other_btns = driver.find_elements(*MyBookPage.RETURN_BTN)
     for btn in other_btns:
         assert btn.is_enabled()
+
+def test_book_card_shows_full_info(driver):
+    page = login_and_open(driver)
+    titles = driver.find_elements(*MyBookPage.BOOK_TITLE)
+    assert len(titles) > 0
+    assert titles[0].text.strip() != ''
+
+
+def test_overdue_book_shows_overdue_status(driver):
+    page = login_and_open(driver)
+    assert 'Trễ hạn' in driver.page_source
+
+def test_overdue_book_shows_fine(driver):
+    page = login_and_open(driver)
+    assert 'Phí phạt' in driver.page_source
+
+def test_status_shows_returning_after_request(driver):
+    page = login_and_open(driver)
+    page.click_return_book()
+    time.sleep(2)
+    page.confirm_swal()
+    time.sleep(2)
+    page.ok_swal()
+    time.sleep(2)
+    driver.refresh()
+    time.sleep(2)
+    assert 'Đang trả sách' in driver.page_source
+
+
+def test_empty_book_list_shows_message(driver):
+    login = LoginPage(driver=driver)
+    login.open_page()
+    login.login(*EMPTY_USER)
+    time.sleep(2)
+    page = MyBookPage(driver=driver)
+    page.open_page()
+    time.sleep(2)
+
+    assert 'Chưa có sách' in driver.page_source

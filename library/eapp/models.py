@@ -118,8 +118,10 @@ if __name__ == '__main__':
                    password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
         u12 = User(name='User Trả Đúng Hạn', username='userreturnedontime',
                    password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
+        u13 = User(name='Hùng', username='hung1234',
+                  password=hashlib.md5('1234'.encode()).hexdigest(), user_role=UserRole.USER)
 
-        db.session.add_all([u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12])
+        db.session.add_all([u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13])
         db.session.commit()
         IMG_PATH = 'static/images/books/'
 
