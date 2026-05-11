@@ -134,11 +134,7 @@ def sample_borrow_details(test_session, sample_borrows, sample_books):
 
 @pytest.fixture
 def driver():
-<<<<<<< Updated upstream
-    service = Service(executable_path='.venv/chromedriver.exe')
-=======
-    service = Service(executable_path='D:\project_KTPM\library\.venv\chromedriver.exe')
->>>>>>> Stashed changes
+    service = Service(executable_path='.venv/chromedriver')
     driver = webdriver.Chrome(service=service)
     yield driver
     driver.quit()
