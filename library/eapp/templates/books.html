@@ -31,6 +31,9 @@
                         <option value="author" {% if request.args.get('search_by') == 'author' %} selected
                         {% endif %}>Tác Giả
                         </option>
+                        <option value="category" {% if request.args.get('search_by') == 'category' %} selected
+                        {% endif %}>Thể loại
+                        </option>
                     </select>
                 </form>
             </div>
@@ -141,5 +144,4 @@
 
 
 <script src="{{ url_for('static', filename='js/borrow.js') }}"></script>
-<script src="{{ url_for('static', filename='js/search.js') }}"></script>
 {% endblock %}
