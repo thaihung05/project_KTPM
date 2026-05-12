@@ -134,7 +134,7 @@ def sample_borrow_details(test_session, sample_borrows, sample_books):
 
 @pytest.fixture
 def driver():
-    service = Service(executable_path='.venv/chromedriver')
+    service = Service(executable_path='.venv/chromedriver.exe')
     driver = webdriver.Chrome(service=service)
     yield driver
     driver.quit()
