@@ -41,7 +41,7 @@ def test_borrow_now_not_login(driver):
     driver.implicitly_wait(1)
     page.click_borrow_now_btn()
     driver.implicitly_wait(1)
-    assert '/login' in LoginPage.URL
+    assert '/login' in driver.current_url
 
 
 def test_cart_borrow_not_login(driver):
@@ -51,13 +51,13 @@ def test_cart_borrow_not_login(driver):
     page.click_borrow_cart_btn()
     driver.implicitly_wait(1)
     page.click_swal_ok_btn()
-    assert '/login' in LoginPage.URL
+    assert '/login' in driver.current_url
 
 
 def test_redirect_after_login(driver):
     login(driver=driver, user=USER_MAIN)
     driver.implicitly_wait(1)
-    assert '/books' in BookPage.URL
+    assert '/books' in driver.current_url
 
 
 def test_borrow_now_success(driver):
