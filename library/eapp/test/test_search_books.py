@@ -88,7 +88,7 @@ def test_combo(sample_books):
     assert len(books) == 0
 
     books = load_books(kw='', search_by='title', cate_id=1, page_size=50)
-    assert len(books) == 4  # kw rỗng → chỉ lọc cate
+    assert len(books) == 4
 
     books = load_books(kw='Tô Hoài', search_by='author', cate_id=2, page_size=50)
     assert len(books) == 1
