@@ -119,9 +119,11 @@ if __name__ == '__main__':
         u12 = User(name='User Trả Đúng Hạn', username='userreturnedontime',
                    password=hashlib.md5('123456'.encode()).hexdigest(), user_role=UserRole.USER)
         u13 = User(name='Hùng', username='hung1234',
-                  password=hashlib.md5('1234'.encode()).hexdigest(), user_role=UserRole.USER)
+                   password=hashlib.md5('1234'.encode()).hexdigest(), user_role=UserRole.USER)
+        u14 = User(name='Hùng', username='hung123',
+                   password=hashlib.md5('123'.encode()).hexdigest(), user_role=UserRole.USER)
 
-        db.session.add_all([u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13])
+        db.session.add_all([u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14])
         db.session.commit()
         IMG_PATH = 'static/images/books/'
 
@@ -305,7 +307,7 @@ if __name__ == '__main__':
         future = datetime.now() + timedelta(days=10)
         past = datetime.now() - timedelta(days=5)
 
-        # user5books: 5 cuốn đang mượn (book id 1–5)
+
         for book_id in range(1, 6):
             br = Borrow(user_id=u5.id)
             db.session.add(br)
@@ -313,7 +315,7 @@ if __name__ == '__main__':
             db.session.add(BorrowDetails(borrow_id=br.id, book_id=book_id, due_date=future))
         db.session.commit()
 
-        # user4books: 4 cuốn đang mượn (book id 1–4)
+
         for book_id in range(1, 5):
             br = Borrow(user_id=u6.id)
             db.session.add(br)
@@ -321,14 +323,14 @@ if __name__ == '__main__':
             db.session.add(BorrowDetails(borrow_id=br.id, book_id=book_id, due_date=future))
         db.session.commit()
 
-        # user1book: 1 cuốn đang mượn (book id 1)
+
         br = Borrow(user_id=u7.id)
         db.session.add(br)
         db.session.flush()
         db.session.add(BorrowDetails(borrow_id=br.id, book_id=1, due_date=future))
         db.session.commit()
 
-        # user3books: 3 cuốn đang mượn (book id 1–3)
+
         for book_id in range(1, 4):
             br = Borrow(user_id=u9.id)
             db.session.add(br)
@@ -336,7 +338,7 @@ if __name__ == '__main__':
             db.session.add(BorrowDetails(borrow_id=br.id, book_id=book_id, due_date=future))
         db.session.commit()
 
-        # useroverdue: 1 cuốn quá hạn (book id 1, due_date đã qua)
+
         br = Borrow(user_id=u10.id)
         db.session.add(br)
         db.session.flush()
@@ -347,8 +349,7 @@ if __name__ == '__main__':
         ))
         db.session.commit()
 
-        # userreturnedoverdue: đã từng có sách quá hạn nhưng đã trả rồi
-        # due_date = 20 ngày trước, return_date = 10 ngày trước → trả muộn 10 ngày
+
         very_past_due = datetime.now() - timedelta(days=20)
         very_past_return = datetime.now() - timedelta(days=10)
         br = Borrow(user_id=u11.id)
@@ -362,8 +363,7 @@ if __name__ == '__main__':
         ))
         db.session.commit()
 
-        # userreturnedontime: đã từng mượn và trả đúng hạn (trước due_date)
-        # due_date = 10 ngày trước, return_date = 15 ngày trước → trả trước hạn 5 ngày
+
         on_time_due = datetime.now() - timedelta(days=10)
         on_time_return = datetime.now() - timedelta(days=15)
         br = Borrow(user_id=u12.id)
@@ -377,5 +377,20 @@ if __name__ == '__main__':
         ))
         db.session.commit()
 
-        print("Đã tạo xong test users cho Selenium!")
+        for book_id in range(2, 4):
+            br = Borrow(user_id=u14.id)
+            db.session.add(br)
+            db.session.flush()
+            db.session.add(BorrowDetails(borrow_id=br.id, book_id=book_id, due_date=future))
+        overdue_due = datetime.now() - timedelta(days=7)
+        br = Borrow(user_id=u14.id)
+        db.session.add(br)
+        db.session.flush()
+        db.session.add(BorrowDetails(
+            borrow_id=br.id, book_id=4,
+            due_date=overdue_due,
+            status=BorrowStatus.OVERDUE
+        ))
+        db.session.commit()
 
+        print("Đã tạo xong test users cho Selenium!")

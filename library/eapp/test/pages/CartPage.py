@@ -1,7 +1,10 @@
 import time
 
+from selenium.webdriver.support.wait import WebDriverWait
+
 from eapp.test.pages.BasePage import BasePage
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class CartPage(BasePage):
@@ -24,7 +27,9 @@ class CartPage(BasePage):
             btn.click()
 
     def click_btn_success(self):
-        btn=self.driver.find_element(*self.BTN_SUCCESS)
+        btn = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "button.btn-success"))
+        )
         btn.click()
 
     def submit_checkbox(self):

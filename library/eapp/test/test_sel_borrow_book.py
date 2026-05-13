@@ -9,8 +9,6 @@ from eapp.test.pages.CartPage import CartPage
 from eapp.test.pages.DetailPage import DetailPage
 from eapp.test.pages.LoginPage import LoginPage
 from eapp.test.test_base import driver
-from eapp import app, db
-from eapp.models import Book
 
 USER_MAIN = ('vanlong01', 'Abc123')
 USER_5_BOOKS = ('test5books', '123456')
@@ -38,9 +36,10 @@ def login(driver, user):
 def test_borrow_now_not_login(driver):
     page = BookPage(driver=driver)
     page.open_page()
-    driver.implicitly_wait(1)
+    time.sleep(1)
     page.click_borrow_now_btn()
-    driver.implicitly_wait(1)
+    time.sleep(1)
+    page.click_swal_ok_btn()
     assert '/login' in driver.current_url
 
 
@@ -56,13 +55,12 @@ def test_cart_borrow_not_login(driver):
 
 def test_redirect_after_login(driver):
     login(driver=driver, user=USER_MAIN)
-    driver.implicitly_wait(1)
+    time.sleep(1)
     assert '/books' in driver.current_url
 
 
 def test_borrow_now_success(driver):
     page = login(driver=driver, user=USER_MAIN)
-    driver.implicitly_wait(1)
     page.click_borrow_now_btn()
 
     popup = driver.find_element(*SWAL)
@@ -72,12 +70,13 @@ def test_borrow_now_success(driver):
 def test_popup_cart_borrow_success(driver):
     page = login(driver=driver, user=USER_MAIN)
     page.click_borrow_cart_btn()
-    popup = driver.find_element(*SWAL)
-    assert popup.is_displayed()
+    msg = page.get_swal_message()
+    assert 'đã được thêm vào giỏ hàng' in msg
 
 
 def test_cart_counter_success(driver):
     page = login(driver=driver, user=USER_MAIN)
+    time.sleep(2)
     e = driver.find_element(*CART_COUNTER)
     count = int(e.text)
     page.click_borrow_cart_btn()
@@ -87,7 +86,7 @@ def test_cart_counter_success(driver):
 
 def test_one_book_appears_in_cart(driver):
     page = login(driver=driver, user=USER_MAIN)
-    title = driver.find_element(By.CSS_SELECTOR, '.book-card-frame .card-title').text
+    title ='Giáo trình Ngôn ngữ lập trình C++'
     page.click_borrow_cart_btn()
     time.sleep(2)
     page = CartPage(driver=driver)
@@ -117,7 +116,7 @@ def test_submit_borrow_one_in_cart(driver):
 
 def test_submit_borrow_two_in_cart(driver):
     page = login(driver=driver, user=USER_MAIN)
-
+    time.sleep(1)
     btns = page.finds(*BookPage.BORROW_CART_BTN)
 
     for btn in btns[:2]:
@@ -138,7 +137,7 @@ def test_submit_borrow_two_in_cart(driver):
 def test_submit_borrow_six_in_cart(driver):
     page = login(driver=driver, user=USER_MAIN)
     driver.execute_script("window.scrollTo(0,400);")
-    time.sleep(2)
+    time.sleep(3)
     btns = page.finds(*BookPage.BORROW_CART_BTN)
 
     for btn in btns[:6]:
@@ -155,6 +154,8 @@ def test_submit_borrow_six_in_cart(driver):
 
 def test_borrow_cart_one_active_select_five_books(driver):
     page = login(driver=driver, user=USER_1_BOOKS)
+    driver.execute_script("window.scrollTo(0,400);")
+    time.sleep(3)
     btns = page.finds(*BookPage.BORROW_CART_BTN)
 
     for btn in btns[:5]:
@@ -177,7 +178,7 @@ def test_borrow_now_five_active(driver):
     assert 'mượn tối đa 5 quyển sách' in msg
 
 
-def test_borrow_four_active_select_two_books(driver):
+def test_cart_borrow_four_active_select_two_books(driver):
     page = login(driver=driver, user=USER_4_BOOKS)
     btns = page.finds(*BookPage.BORROW_CART_BTN)
 
@@ -218,6 +219,8 @@ def test_cart_borrow_with_locked_account(driver):
 
 def test_cart_borrow_five_books_with_locked_account(driver):
     page = login(driver=driver, user=USER_LOCKED)
+    driver.execute_script("window.scrollTo(0,400);")
+    time.sleep(3)
     btns = page.finds(*BookPage.BORROW_CART_BTN)
 
     for btn in btns[:5]:
@@ -282,9 +285,9 @@ def test_out_of_stock_badge_in_detail_page(driver):
 def test_borrow_now_last_one_then_out_of_stock(driver):
     page = login(driver=driver, user=USER_MAIN)
     driver.execute_script('window.scrollTo(0,1000);')
-    time.sleep(1)
+    time.sleep(3)
 
-    e = driver.find_element(By.CSS_SELECTOR, 'button[onclick="borrowBook(15)"]')
+    e = page.find(By.CSS_SELECTOR, 'button[onclick="borrowBook(15)"]')
     e.click()
 
     msg = page.get_swal_message()
@@ -296,7 +299,7 @@ def test_borrow_now_last_one_then_out_of_stock(driver):
 
 
 def test_cart_borrow_last_one_then_out_of_stocks(driver):
-    page = login(driver=driver, user=USER_MAIN)
+    page = login(driver=driver, user=USER_3_BOOKS)
     driver.execute_script('window.scrollTo(0,1000);')
     time.sleep(1)
     out_of_stock_btns_before = page.get_out_of_stock_btns()
@@ -370,7 +373,7 @@ def test_cart_borrow_after_on_time_returned(driver):
 
 def test_confirm_empty_cart(driver):
     page=login(driver=driver, user=USER_MAIN)
-
+    time.sleep(1)
     cartPage = CartPage(driver=driver)
     cartPage.open_page()
     cartPage.click_btn_success()
