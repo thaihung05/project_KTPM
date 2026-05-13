@@ -1,6 +1,8 @@
 import time
 import unicodedata
 from selenium.webdriver.common.by import By
+from urllib.parse import urlencode
+
 
 def perform_search(driver, kw=None, c_name=None, search_by=None,page=None, open_page=True):
     from eapp.test.pages.BooksPage import BooksPage
@@ -30,6 +32,30 @@ def perform_search(driver, kw=None, c_name=None, search_by=None,page=None, open_
     results = driver.find_elements(By.CSS_SELECTOR, '.book-card-frame')
     return results
 
+def perform_search_by_url(driver, kw=None, c_name=None, search_by=None,page=None):
+    params = {}
+
+    if kw is not None:
+        params["kw"] = kw
+
+    if search_by is not None:
+        params["search_by"] = search_by
+
+    if c_name is not None:
+        params["category_id"] = c_name
+
+    if page is not None:
+        params["page"] = page
+
+    query_string = urlencode(params)
+
+    url = f"http://127.0.0.1:5000/books?{query_string}"
+
+    driver.get(url)
+
+    return perform_search(driver, open_page=False)
+
+
 def clean_text(text):
     if not text:
         return ""
@@ -40,16 +66,6 @@ def clean_text(text):
     result = "".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
     return result.replace('đ', 'd')
-
-# def assert_positive(results, kw):
-#     assert len(results) > 0, f"Lỗi: Không tìm thấy '{kw}'!"
-#
-#     for r in results:
-#         clean_kw = clean_text(kw)
-#         clean_title = clean_text(r.text)
-#
-#         # print(f"\nSo sánh: '{clean_kw}' trong '{clean_title}'")
-#         assert clean_kw in clean_title, f"Lỗi: {kw} không nằm trong {r.text}"
 
 
 def assert_positive(results, kw, search_by='title'):
