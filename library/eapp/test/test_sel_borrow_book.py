@@ -267,7 +267,7 @@ def test_out_of_stock_when_not_login(driver):
     assert len(out_of_stock_btns) > 0
 
 
-# tc23
+
 def test_out_of_stock_badge_in_detail_page(driver):
     page = DetailPage(driver=driver)
     page.open_page()
