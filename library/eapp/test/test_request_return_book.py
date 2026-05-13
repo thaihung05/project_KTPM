@@ -37,7 +37,7 @@ def test_request_return_not_owner(test_client, mocker, fake_user):
     data = res.get_json()
 
     assert res.status_code == 403
-    assert 'quyền' in data['error']
+    assert 'không có quyền' in data['error']
     mock_req.assert_called_once()
 
 
