@@ -1,5 +1,7 @@
+from selenium.webdriver.common.by import By
+
 from eapp.test.test_base import driver
-from eapp.test.search_helper import perform_search, assert_positive, assert_negative, assert_category_active,assert_pagination_active
+from eapp.test.search_helper import perform_search, assert_positive, assert_negative, assert_category_active,assert_pagination_active,perform_search_by_url
 
 
 def test_search_full_title(driver):
@@ -345,3 +347,99 @@ def test_pagination_when_search_result_over_50_books(driver):
     first_book_2 = results_2[0].text
 
     assert first_book_1 != first_book_2, "Lỗi: Dữ liệu page 1 và page 2 giống nhau"
+
+def test_search_kw_on_url(driver):
+    kw = 'Tôi thấy hoa vàng trên cỏ xanh'
+
+    results = perform_search_by_url(driver,kw=kw)
+
+    assert_positive(results, kw)
+
+def test_search_author_on_url(driver):
+    kw = 'Nguyễn Du'
+    search_by = 'author'
+
+    results = perform_search_by_url(driver,kw=kw,search_by=search_by)
+
+    assert_positive(results, kw, search_by=search_by)
+
+def test_search_title_on_url(driver):
+    kw = 'Lập Trình Java Core'
+    search_by = 'title'
+
+    results = perform_search_by_url(driver,kw=kw,search_by=search_by)
+
+    assert_positive(results, kw)
+
+def test_search_author_kw_but_search_title_on_url(driver):
+    kw = 'Nguyễn Du'
+    search_by = 'title'
+
+    results = perform_search_by_url(driver,kw=kw,search_by=search_by)
+
+    assert_negative(driver, results, kw)
+
+def test_search_title_kw_but_search_author_on_url(driver):
+    kw = 'Lập Trình Java Core'
+    search_by = 'author'
+
+    results = perform_search_by_url(driver,kw=kw,search_by=search_by)
+
+    assert_negative(driver, results, kw)
+
+def test_search_kw_and_category_on_url(driver):
+    kw = 'Tôi thấy hoa vàng trên cỏ xanh'
+
+    results = perform_search_by_url(driver,kw=kw,c_name=2)
+
+    assert_positive(results, kw)
+
+def test_search_kw_lower_than_2_character_on_url(driver):
+    kw = 'a'
+
+    results = perform_search_by_url(driver,kw=kw)
+
+    assert_negative(driver, results, kw)
+
+def test_search_kw_pagination_page_2_on_url(driver):
+    kw = 'python'
+
+    results = perform_search_by_url(driver,kw=kw,page=2)
+
+    assert len(results) > 0, "Lỗi: Không có dữ liệu trang 2"
+
+    assert_pagination_active(driver, 2)
+
+    assert "kw=python" in driver.current_url
+
+def test_search_kw_empty_on_url(driver):
+    kw=''
+
+    results = perform_search_by_url(driver,kw=kw)
+
+    assert_positive(results, kw=None)
+
+def test_search_kw_only_space_on_url(driver):
+    kw = '            '
+
+    results = perform_search_by_url(driver,kw=kw)
+
+    assert_positive(results, kw=None)
+
+def test_search_invalid_search_by_on_url(driver):
+
+    results = perform_search_by_url(driver,search_by='abc')
+
+    assert_positive(results, kw=None)
+
+def test_search_invalid_category_on_url(driver):
+
+    results = perform_search_by_url(driver,c_name=99999)
+
+    alert_msg = driver.find_elements(By.CSS_SELECTOR,".container .alert")
+
+    assert len(results) == 0, "Lỗi: Vẫn tìm thấy sách"
+
+    assert len(alert_msg) > 0, "Lỗi: Không có thông báo"
+
+    assert "Không tìm thấy" in alert_msg[0].text
